@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ink: #1f1c19;
+    --muted: #5b5b5f;
+    --panel: #fff3e6;
+    --accent: #ff6b4a;
+    --accent-strong: #f34f2a;
+    --highlight: #ffd8a8;
+    --line: rgba(17, 24, 39, 0.12);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Outfit', 'Segoe UI', sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top left, rgba(255, 216, 168, 0.7), transparent 55%),
+      radial-gradient(circle at 20% 80%, rgba(139, 211, 199, 0.45), transparent 50%),
+      linear-gradient(120deg, #fbf4ea 0%, #f9efe6 45%, #f6e6dc 100%);
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'DM Serif Display', 'Times New Roman', serif;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-3xl border border-white/70 bg-white/70 shadow-soft backdrop-blur;
+  }
+
+  .section-title {
+    @apply text-2xl font-semibold text-[var(--ink)];
+  }
+
+  .muted-text {
+    @apply text-sm text-[var(--muted)];
+  }
+}
