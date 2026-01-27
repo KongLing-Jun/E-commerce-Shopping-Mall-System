@@ -5,6 +5,7 @@ import com.thinking.backendmall.common.Result;
 import com.thinking.backendmall.dto.AdminProductRequest;
 import com.thinking.backendmall.entity.Product;
 import com.thinking.backendmall.service.AdminProductService;
+import com.thinking.backendmall.service.OperationLogService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,9 @@ public class AdminProductController {
 
     @Autowired
     private AdminProductService adminProductService;
+
+    @Autowired
+    private OperationLogService operationLogService;
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:products:list')")
@@ -43,6 +47,7 @@ public class AdminProductController {
     @PreAuthorize("@permissionService.hasPerm('admin:products:on')")
     public Result<Void> enableProduct(@PathVariable Long id) {
         adminProductService.updateStatus(id, "ON");
+        operationLogService.record("PRODUCT_ON", "product:" + id, "status=ON");
         return Result.success();
     }
 
@@ -50,6 +55,15 @@ public class AdminProductController {
     @PreAuthorize("@permissionService.hasPerm('admin:products:off')")
     public Result<Void> disableProduct(@PathVariable Long id) {
         adminProductService.updateStatus(id, "OFF");
+        operationLogService.record("PRODUCT_OFF", "product:" + id, "status=OFF");
+        return Result.success();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("@permissionService.hasPerm('admin:products:delete')")
+    public Result<Void> deleteProduct(@PathVariable Long id) {
+        adminProductService.deleteProduct(id);
+        operationLogService.record("PRODUCT_DELETE", "product:" + id, "deleted");
         return Result.success();
     }
 }

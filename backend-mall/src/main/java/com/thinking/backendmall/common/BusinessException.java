@@ -13,6 +13,11 @@ public class BusinessException extends RuntimeException {
         this.code = code;
     }
 
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode == null ? ErrorCode.SERVER_ERROR.getMessage() : errorCode.getMessage());
+        this.code = errorCode == null ? ErrorCode.SERVER_ERROR.getCode() : errorCode.getCode();
+    }
+
     public int getCode() {
         return code;
     }

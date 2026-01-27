@@ -38,6 +38,19 @@ public class MenuServiceImpl implements MenuService {
         return buildTree(menus);
     }
 
+    @Override
+    public List<String> listMyPerms(String roleKey) {
+        if (roleKey == null || roleKey.isBlank()) {
+            throw new BusinessException("Role is required");
+        }
+        Role role = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, roleKey));
+        if (role == null) {
+            return new ArrayList<>();
+        }
+        List<String> perms = menuRepository.selectPermCodesByRoleId(role.getId());
+        return perms == null ? new ArrayList<>() : perms;
+    }
+
     private List<MenuTreeNode> buildTree(List<Menu> menus) {
         Map<Long, MenuTreeNode> nodeMap = new HashMap<>();
         List<MenuTreeNode> roots = new ArrayList<>();

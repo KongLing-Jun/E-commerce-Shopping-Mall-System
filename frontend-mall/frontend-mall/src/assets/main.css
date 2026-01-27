@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -13,6 +13,40 @@
     --accent-strong: #f34f2a;
     --highlight: #ffd8a8;
     --line: rgba(17, 24, 39, 0.12);
+    --bg-start: rgba(255, 216, 168, 0.7);
+    --bg-mid: rgba(139, 211, 199, 0.45);
+    --bg-end: #f6e6dc;
+    --surface: rgba(255, 255, 255, 0.8);
+    --surface-strong: rgba(255, 255, 255, 0.95);
+    --shadow: 0 24px 60px -45px rgba(17, 24, 39, 0.4);
+
+    --el-bg-color: #ffffff;
+    --el-bg-color-overlay: #ffffff;
+    --el-text-color-primary: #1f1c19;
+    --el-text-color-regular: #5b5b5f;
+    --el-border-color: rgba(17, 24, 39, 0.12);
+  }
+
+  :root[data-theme='dark'] {
+    --ink: #f2f1ef;
+    --muted: #b8b2aa;
+    --panel: #1e1a17;
+    --accent: #ff8b5a;
+    --accent-strong: #ff6b4a;
+    --highlight: #2f2621;
+    --line: rgba(248, 244, 240, 0.12);
+    --bg-start: rgba(30, 20, 18, 0.9);
+    --bg-mid: rgba(26, 36, 43, 0.7);
+    --bg-end: #14110f;
+    --surface: rgba(30, 26, 23, 0.82);
+    --surface-strong: rgba(36, 31, 28, 0.96);
+    --shadow: 0 24px 60px -45px rgba(0, 0, 0, 0.8);
+
+    --el-bg-color: #1e1a17;
+    --el-bg-color-overlay: #26211d;
+    --el-text-color-primary: #f2f1ef;
+    --el-text-color-regular: #cfc6bb;
+    --el-border-color: rgba(248, 244, 240, 0.12);
   }
 
   * {
@@ -23,23 +57,19 @@
     font-family: 'Outfit', 'Segoe UI', sans-serif;
     color: var(--ink);
     background:
-      radial-gradient(circle at top left, rgba(255, 216, 168, 0.7), transparent 55%),
-      radial-gradient(circle at 20% 80%, rgba(139, 211, 199, 0.45), transparent 50%),
-      linear-gradient(120deg, #fbf4ea 0%, #f9efe6 45%, #f6e6dc 100%);
+      radial-gradient(circle at top left, var(--bg-start), transparent 55%),
+      radial-gradient(circle at 20% 80%, var(--bg-mid), transparent 50%),
+      linear-gradient(120deg, #fbf4ea 0%, #f9efe6 45%, var(--bg-end) 100%);
     min-height: 100vh;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: 'DM Serif Display', 'Times New Roman', serif;
   }
 }
 
 @layer components {
   .glass-panel {
-    @apply rounded-3xl border border-white/70 bg-white/70 shadow-soft backdrop-blur;
+    @apply rounded-3xl backdrop-blur;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
   }
 
   .section-title {
@@ -48,5 +78,11 @@
 
   .muted-text {
     @apply text-sm text-[var(--muted)];
+  }
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: var(--shadow);
   }
 }

@@ -47,7 +47,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         userRepository.selectPage(pageResult, wrapper);
 
         List<User> users = pageResult.getRecords();
-        Map<Long, String> roleMap = loadRoleMap(users);
+        Map<Long, Role> roleMap = loadRoles(users);
 
         List<AdminUserView> views = new ArrayList<>();
         for (User user : users) {
@@ -56,7 +56,12 @@ public class AdminUserServiceImpl implements AdminUserService {
             view.setUsername(user.getUsername());
             view.setPhone(user.getPhone());
             view.setStatus(user.getStatus());
-            view.setRoleKey(roleMap.get(user.getRoleId()));
+            Role role = roleMap.get(user.getRoleId());
+            if (role != null) {
+                view.setRoleId(role.getId());
+                view.setRoleKey(role.getRoleKey());
+                view.setRoleName(role.getRoleName());
+            }
             view.setCreatedAt(user.getCreatedAt());
             views.add(view);
         }
@@ -86,8 +91,25 @@ public class AdminUserServiceImpl implements AdminUserService {
         userRepository.updateById(user);
     }
 
-    private Map<Long, String> loadRoleMap(List<User> users) {
-        Map<Long, String> map = new HashMap<>();
+    @Override
+    public void updateUserRole(Long userId, Long roleId) {
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "User not found");
+        }
+        if (roleId == null) {
+            throw new BusinessException(400, "RoleId is required");
+        }
+        Role role = roleRepository.selectById(roleId);
+        if (role == null) {
+            throw new BusinessException(404, "Role not found");
+        }
+        user.setRoleId(roleId);
+        userRepository.updateById(user);
+    }
+
+    private Map<Long, Role> loadRoles(List<User> users) {
+        Map<Long, Role> map = new HashMap<>();
         if (users.isEmpty()) {
             return map;
         }
@@ -99,7 +121,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         }
         if (!roleIds.isEmpty()) {
             for (Role role : roleRepository.selectBatchIds(roleIds)) {
-                map.put(role.getId(), role.getRoleKey());
+                map.put(role.getId(), role);
             }
         }
         return map;

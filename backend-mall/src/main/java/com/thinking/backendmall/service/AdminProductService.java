@@ -12,4 +12,6 @@ public interface AdminProductService {
     Product updateProduct(Long id, AdminProductRequest request);
 
     void updateStatus(Long id, String status);
+
+    void deleteProduct(Long id);
 }

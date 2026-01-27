@@ -27,6 +27,8 @@ request.interceptors.response.use(
     error => {
         if (error.response && error.response.status === 401) {
             localStorage.removeItem('token')
+            localStorage.removeItem('roleKey')
+            localStorage.removeItem('perms')
             window.dispatchEvent(new Event('auth-changed'))
             window.location.href = '/login'
         }

@@ -54,4 +54,11 @@ public class Result<T> {
         result.setMessage(message);
         return result;
     }
+
+    public static <T> Result<T> error(ErrorCode errorCode) {
+        if (errorCode == null) {
+            return error(500, "Server error");
+        }
+        return error(errorCode.getCode(), errorCode.getMessage());
+    }
 }

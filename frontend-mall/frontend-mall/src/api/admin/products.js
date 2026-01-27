@@ -19,3 +19,7 @@ export const enableAdminProduct = (id) => {
 export const disableAdminProduct = (id) => {
   return request.put(`/api/admin/products/${id}/off`)
 }
+
+export const deleteAdminProduct = (id) => {
+  return request.delete(`/api/admin/products/${id}`)
+}

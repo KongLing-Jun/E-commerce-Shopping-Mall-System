@@ -2,12 +2,14 @@ package com.thinking.backendmall.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.thinking.backendmall.common.CacheKeys;
 import com.thinking.backendmall.common.BusinessException;
 import com.thinking.backendmall.common.PageResult;
 import com.thinking.backendmall.dto.AdminBannerRequest;
 import com.thinking.backendmall.entity.Banner;
 import com.thinking.backendmall.repository.BannerRepository;
 import com.thinking.backendmall.service.AdminBannerService;
+import com.thinking.backendmall.service.CacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ public class AdminBannerServiceImpl implements AdminBannerService {
 
     @Autowired
     private BannerRepository bannerRepository;
+
+    @Autowired
+    private CacheService cacheService;
 
     @Override
     public PageResult<Banner> listBanners(Integer status, int page, int size) {
@@ -39,6 +44,7 @@ public class AdminBannerServiceImpl implements AdminBannerService {
         banner.setSort(request.getSort());
         banner.setStatus(request.getStatus());
         bannerRepository.insert(banner);
+        cacheService.delete(CacheKeys.HOME_BANNERS);
         return banner;
     }
 
@@ -54,6 +60,7 @@ public class AdminBannerServiceImpl implements AdminBannerService {
         banner.setSort(request.getSort());
         banner.setStatus(request.getStatus());
         bannerRepository.updateById(banner);
+        cacheService.delete(CacheKeys.HOME_BANNERS);
         return banner;
     }
 
@@ -64,5 +71,6 @@ public class AdminBannerServiceImpl implements AdminBannerService {
             throw new BusinessException(404, "Banner not found");
         }
         bannerRepository.deleteById(id);
+        cacheService.delete(CacheKeys.HOME_BANNERS);
     }
 }

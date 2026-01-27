@@ -2,12 +2,15 @@ package com.thinking.backendmall.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.thinking.backendmall.common.CacheKeys;
 import com.thinking.backendmall.common.BusinessException;
+import com.thinking.backendmall.common.HtmlSanitizer;
 import com.thinking.backendmall.common.PageResult;
 import com.thinking.backendmall.dto.AdminProductRequest;
 import com.thinking.backendmall.entity.Product;
 import com.thinking.backendmall.repository.ProductRepository;
 import com.thinking.backendmall.service.AdminProductService;
+import com.thinking.backendmall.service.CacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,9 @@ public class AdminProductServiceImpl implements AdminProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CacheService cacheService;
 
     @Override
     public PageResult<Product> listProducts(String keyword, Long categoryId, String status, int page, int size) {
@@ -48,9 +54,10 @@ public class AdminProductServiceImpl implements AdminProductService {
         product.setStock(request.getStock());
         product.setStatus(normalizeStatus(request.getStatus(), "ON"));
         product.setCoverUrl(request.getCoverUrl());
-        product.setDetailHtml(request.getDetailHtml());
+        product.setDetailHtml(HtmlSanitizer.sanitize(request.getDetailHtml()));
         product.setCreatedAt(LocalDateTime.now());
         productRepository.insert(product);
+        evictProductCaches();
         return product;
     }
 
@@ -67,8 +74,9 @@ public class AdminProductServiceImpl implements AdminProductService {
         existing.setStock(request.getStock());
         existing.setStatus(normalizeStatus(request.getStatus(), existing.getStatus()));
         existing.setCoverUrl(request.getCoverUrl());
-        existing.setDetailHtml(request.getDetailHtml());
+        existing.setDetailHtml(HtmlSanitizer.sanitize(request.getDetailHtml()));
         productRepository.updateById(existing);
+        evictProductCaches();
         return existing;
     }
 
@@ -80,6 +88,17 @@ public class AdminProductServiceImpl implements AdminProductService {
         }
         existing.setStatus(normalizeStatus(status, existing.getStatus()));
         productRepository.updateById(existing);
+        evictProductCaches();
+    }
+
+    @Override
+    public void deleteProduct(Long id) {
+        Product existing = productRepository.selectById(id);
+        if (existing == null) {
+            throw new BusinessException(404, "Product not found");
+        }
+        productRepository.deleteById(id);
+        evictProductCaches();
     }
 
     private String normalizeStatus(String status, String fallback) {
@@ -87,5 +106,11 @@ public class AdminProductServiceImpl implements AdminProductService {
             return fallback;
         }
         return status.trim().toUpperCase();
+    }
+
+    private void evictProductCaches() {
+        cacheService.deleteByPrefix(CacheKeys.PRODUCT_DETAIL_PREFIX);
+        cacheService.deleteByPrefix(CacheKeys.PRODUCT_SEARCH_PREFIX);
+        cacheService.delete(CacheKeys.HOME_RECOMMEND);
     }
 }

@@ -1,18 +1,18 @@
 ﻿<template>
   <div class="space-y-6 animate-fade-up">
-    <el-card class="border-0 bg-white/85 shadow-soft">
+    <el-card class="border-0 bg-[var(--surface-strong)] shadow-soft">
       <template #header>
         <div>
-          <h2 class="text-2xl font-semibold">Order confirmation</h2>
-          <p class="muted-text">Review items, choose address, and submit.</p>
+          <h2 class="text-2xl font-semibold">{{ t('orderConfirm.title') }}</h2>
+          <p class="muted-text">{{ t('orderConfirm.subtitle') }}</p>
         </div>
       </template>
 
       <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div class="space-y-4">
-          <h3 class="text-lg font-semibold">Items</h3>
+          <h3 class="text-lg font-semibold">{{ t('orderConfirm.items') }}</h3>
           <el-table v-if="orderItems.length" :data="orderItems" style="width: 100%">
-            <el-table-column label="Product">
+            <el-table-column :label="t('nav.products')">
               <template #default="{ row }">
                 <div class="flex items-center gap-3">
                   <el-image :src="row.image" class="h-14 w-14 rounded-xl" fit="cover" />
@@ -23,22 +23,22 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="Qty" width="120">
+            <el-table-column :label="t('common.qty')" width="120">
               <template #default="{ row }">
                 x {{ row.quantity }}
               </template>
             </el-table-column>
-            <el-table-column label="Subtotal" width="140">
+            <el-table-column :label="t('common.amount')" width="140">
               <template #default="{ row }">
                 $ {{ formatPrice(row.price * row.quantity) }}
               </template>
             </el-table-column>
           </el-table>
-          <el-empty v-else description="No items selected" />
+          <el-empty v-else :description="t('orderConfirm.noItems')" />
         </div>
 
         <div class="space-y-4">
-          <h3 class="text-lg font-semibold">Shipping address</h3>
+          <h3 class="text-lg font-semibold">{{ t('orderConfirm.address') }}</h3>
           <el-radio-group v-model="selectedAddressId" class="w-full">
             <el-radio
               v-for="address in addresses"
@@ -49,24 +49,25 @@
               {{ address.receiver }} {{ address.phone }} -
               {{ address.province }} {{ address.city }} {{ address.area }} {{ address.detail }}
               <el-tag v-if="address.isDefault === 1" type="success" size="small" class="ml-2">
-                Default
+                {{ t('address.default') }}
               </el-tag>
             </el-radio>
           </el-radio-group>
           <el-button type="primary" plain @click="router.push('/addresses')">
-            Manage addresses
+            {{ t('orderConfirm.manageAddress') }}
           </el-button>
         </div>
       </div>
     </el-card>
 
-    <el-card class="border-0 bg-white/85 shadow-soft">
+    <el-card class="border-0 bg-[var(--surface-strong)] shadow-soft">
       <div class="flex flex-col items-end gap-3">
         <div class="text-lg">
-          Total <span class="text-2xl font-semibold text-[var(--accent)]">$ {{ formatPrice(totalAmount) }}</span>
+          {{ t('orderConfirm.total') }}
+          <span class="text-2xl font-semibold text-[var(--accent)]">$ {{ formatPrice(totalAmount) }}</span>
         </div>
         <el-button type="primary" size="large" :loading="loading" @click="submitOrder">
-          Submit order
+          {{ t('orderConfirm.submit') }}
         </el-button>
       </div>
     </el-card>
@@ -78,6 +79,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { createOrder, getOrderPre } from '@/api/order.js'
+import { useI18n } from '@/i18n/index.js'
 
 const router = useRouter()
 const orderItems = ref([])
@@ -85,6 +87,7 @@ const addresses = ref([])
 const totalAmount = ref(0)
 const selectedAddressId = ref(null)
 const loading = ref(false)
+const { t } = useI18n()
 
 const formatPrice = (value) => {
   const numberValue = Number(value || 0)
@@ -104,30 +107,30 @@ const loadPreOrder = async () => {
       ElMessage.error(res.message)
     }
   } catch (error) {
-    ElMessage.error('Failed to load order confirmation')
+    ElMessage.error(t('orderConfirm.loadFail'))
   }
 }
 
 const submitOrder = async () => {
   if (!selectedAddressId.value) {
-    ElMessage.warning('Please select a shipping address')
+    ElMessage.warning(t('orderConfirm.selectAddress'))
     return
   }
   if (!orderItems.value.length) {
-    ElMessage.warning('No items selected')
+    ElMessage.warning(t('orderConfirm.noItems'))
     return
   }
   loading.value = true
   try {
     const res = await createOrder({ addressId: selectedAddressId.value })
     if (res.code === 200) {
-      ElMessage.success('Order created')
+      ElMessage.success(t('orderConfirm.created'))
       router.push('/orders')
     } else {
       ElMessage.error(res.message)
     }
   } catch (error) {
-    ElMessage.error('Failed to submit order')
+    ElMessage.error(t('orderConfirm.submitFail'))
   } finally {
     loading.value = false
   }
@@ -135,3 +138,4 @@ const submitOrder = async () => {
 
 onMounted(loadPreOrder)
 </script>
+

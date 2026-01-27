@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface MenuService {
     List<MenuTreeNode> listMyMenus(String roleKey);
+
+    List<String> listMyPerms(String roleKey);
 }

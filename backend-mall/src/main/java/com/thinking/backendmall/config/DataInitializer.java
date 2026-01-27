@@ -66,6 +66,9 @@ public class DataInitializer implements CommandLineRunner {
         if (roleMenuRepository.selectCount(new QueryWrapper<>()) == 0) {
             initRoleMenus();
         }
+        ensureCategoryMenus();
+        ensureRoleMenus();
+        ensureUserRolePermission();
         if (userRepository.selectCount(new QueryWrapper<>()) == 0) {
             initUsers();
         }
@@ -123,15 +126,35 @@ public class DataInitializer implements CommandLineRunner {
         adminUsers.setVisible(1);
         menuRepository.insert(adminUsers);
 
+        Menu adminRoles = new Menu();
+        adminRoles.setName("Role Management");
+        adminRoles.setPath("/admin/roles");
+        adminRoles.setComponent("AdminRoles");
+        adminRoles.setType("MENU");
+        adminRoles.setPermCode("admin:roles:list");
+        adminRoles.setSort(2);
+        adminRoles.setVisible(1);
+        menuRepository.insert(adminRoles);
+
         Menu adminProducts = new Menu();
         adminProducts.setName("Product Management");
         adminProducts.setPath("/admin/products");
         adminProducts.setComponent("AdminProducts");
         adminProducts.setType("MENU");
         adminProducts.setPermCode("admin:products:list");
-        adminProducts.setSort(2);
+        adminProducts.setSort(3);
         adminProducts.setVisible(1);
         menuRepository.insert(adminProducts);
+
+        Menu adminCategories = new Menu();
+        adminCategories.setName("Category Management");
+        adminCategories.setPath("/admin/categories");
+        adminCategories.setComponent("AdminCategories");
+        adminCategories.setType("MENU");
+        adminCategories.setPermCode("admin:categories:list");
+        adminCategories.setSort(4);
+        adminCategories.setVisible(1);
+        menuRepository.insert(adminCategories);
 
         Menu adminOrders = new Menu();
         adminOrders.setName("Order Management");
@@ -139,9 +162,19 @@ public class DataInitializer implements CommandLineRunner {
         adminOrders.setComponent("AdminOrders");
         adminOrders.setType("MENU");
         adminOrders.setPermCode("admin:orders:list");
-        adminOrders.setSort(3);
+        adminOrders.setSort(5);
         adminOrders.setVisible(1);
         menuRepository.insert(adminOrders);
+
+        Menu adminStats = new Menu();
+        adminStats.setName("Stats Dashboard");
+        adminStats.setPath("/admin/stats");
+        adminStats.setComponent("AdminStats");
+        adminStats.setType("MENU");
+        adminStats.setPermCode("admin:stats:view");
+        adminStats.setSort(6);
+        adminStats.setVisible(1);
+        menuRepository.insert(adminStats);
 
         Menu adminBanners = new Menu();
         adminBanners.setName("Banner Management");
@@ -149,7 +182,7 @@ public class DataInitializer implements CommandLineRunner {
         adminBanners.setComponent("AdminBanners");
         adminBanners.setType("MENU");
         adminBanners.setPermCode("admin:banners:list");
-        adminBanners.setSort(4);
+        adminBanners.setSort(7);
         adminBanners.setVisible(1);
         menuRepository.insert(adminBanners);
 
@@ -159,7 +192,7 @@ public class DataInitializer implements CommandLineRunner {
         adminCarts.setComponent("AdminCarts");
         adminCarts.setType("MENU");
         adminCarts.setPermCode("admin:carts:list");
-        adminCarts.setSort(5);
+        adminCarts.setSort(8);
         adminCarts.setVisible(1);
         menuRepository.insert(adminCarts);
 
@@ -178,6 +211,27 @@ public class DataInitializer implements CommandLineRunner {
         userReset.setVisible(0);
         menuRepository.insert(userReset);
 
+        Menu userRole = new Menu();
+        userRole.setName("Assign Role");
+        userRole.setType("BUTTON");
+        userRole.setPermCode("admin:users:role");
+        userRole.setVisible(0);
+        menuRepository.insert(userRole);
+
+        Menu roleEdit = new Menu();
+        roleEdit.setName("Manage Role");
+        roleEdit.setType("BUTTON");
+        roleEdit.setPermCode("admin:roles:edit");
+        roleEdit.setVisible(0);
+        menuRepository.insert(roleEdit);
+
+        Menu roleDelete = new Menu();
+        roleDelete.setName("Delete Role");
+        roleDelete.setType("BUTTON");
+        roleDelete.setPermCode("admin:roles:delete");
+        roleDelete.setVisible(0);
+        menuRepository.insert(roleDelete);
+
         Menu productOn = new Menu();
         productOn.setName("Enable Product");
         productOn.setType("BUTTON");
@@ -191,6 +245,13 @@ public class DataInitializer implements CommandLineRunner {
         productOff.setPermCode("admin:products:off");
         productOff.setVisible(0);
         menuRepository.insert(productOff);
+
+        Menu productDelete = new Menu();
+        productDelete.setName("Delete Product");
+        productDelete.setType("BUTTON");
+        productDelete.setPermCode("admin:products:delete");
+        productDelete.setVisible(0);
+        menuRepository.insert(productDelete);
 
         Menu bannerEdit = new Menu();
         bannerEdit.setName("Manage Banner");
@@ -206,12 +267,40 @@ public class DataInitializer implements CommandLineRunner {
         orderShip.setVisible(0);
         menuRepository.insert(orderShip);
 
+        Menu orderExport = new Menu();
+        orderExport.setName("Export Orders");
+        orderExport.setType("BUTTON");
+        orderExport.setPermCode("admin:orders:export");
+        orderExport.setVisible(0);
+        menuRepository.insert(orderExport);
+
         Menu cartDelete = new Menu();
         cartDelete.setName("Delete Cart");
         cartDelete.setType("BUTTON");
         cartDelete.setPermCode("admin:carts:delete");
         cartDelete.setVisible(0);
         menuRepository.insert(cartDelete);
+
+        Menu categoryEdit = new Menu();
+        categoryEdit.setName("Manage Category");
+        categoryEdit.setType("BUTTON");
+        categoryEdit.setPermCode("admin:categories:edit");
+        categoryEdit.setVisible(0);
+        menuRepository.insert(categoryEdit);
+
+        Menu categoryDelete = new Menu();
+        categoryDelete.setName("Delete Category");
+        categoryDelete.setType("BUTTON");
+        categoryDelete.setPermCode("admin:categories:delete");
+        categoryDelete.setVisible(0);
+        menuRepository.insert(categoryDelete);
+
+        Menu uploadImage = new Menu();
+        uploadImage.setName("Upload File");
+        uploadImage.setType("BUTTON");
+        uploadImage.setPermCode("admin:upload");
+        uploadImage.setVisible(0);
+        menuRepository.insert(uploadImage);
     }
 
     private void initRoleMenus() {
@@ -239,6 +328,131 @@ public class DataInitializer implements CommandLineRunner {
                 rm.setMenuId(menu.getId());
                 roleMenuRepository.insert(rm);
             }
+        }
+    }
+
+    private void ensureCategoryMenus() {
+        Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
+        if (adminRole == null) {
+            return;
+        }
+
+        Menu categoryMenu = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:categories:list"));
+        if (categoryMenu == null) {
+            categoryMenu = new Menu();
+            categoryMenu.setName("Category Management");
+            categoryMenu.setPath("/admin/categories");
+            categoryMenu.setComponent("AdminCategories");
+            categoryMenu.setType("MENU");
+            categoryMenu.setPermCode("admin:categories:list");
+            categoryMenu.setSort(3);
+            categoryMenu.setVisible(1);
+            menuRepository.insert(categoryMenu);
+        }
+        ensureRoleMenu(adminRole.getId(), categoryMenu.getId());
+
+        Menu categoryEdit = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:categories:edit"));
+        if (categoryEdit == null) {
+            categoryEdit = new Menu();
+            categoryEdit.setName("Manage Category");
+            categoryEdit.setType("BUTTON");
+            categoryEdit.setPermCode("admin:categories:edit");
+            categoryEdit.setVisible(0);
+            menuRepository.insert(categoryEdit);
+        }
+        ensureRoleMenu(adminRole.getId(), categoryEdit.getId());
+
+        Menu categoryDelete = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:categories:delete"));
+        if (categoryDelete == null) {
+            categoryDelete = new Menu();
+            categoryDelete.setName("Delete Category");
+            categoryDelete.setType("BUTTON");
+            categoryDelete.setPermCode("admin:categories:delete");
+            categoryDelete.setVisible(0);
+            menuRepository.insert(categoryDelete);
+        }
+        ensureRoleMenu(adminRole.getId(), categoryDelete.getId());
+    }
+
+    private void ensureRoleMenus() {
+        Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
+        if (adminRole == null) {
+            return;
+        }
+
+        Menu roleMenu = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:roles:list"));
+        if (roleMenu == null) {
+            roleMenu = new Menu();
+            roleMenu.setName("Role Management");
+            roleMenu.setPath("/admin/roles");
+            roleMenu.setComponent("AdminRoles");
+            roleMenu.setType("MENU");
+            roleMenu.setPermCode("admin:roles:list");
+            roleMenu.setSort(2);
+            roleMenu.setVisible(1);
+            menuRepository.insert(roleMenu);
+        }
+        ensureRoleMenu(adminRole.getId(), roleMenu.getId());
+
+        Menu roleEdit = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:roles:edit"));
+        if (roleEdit == null) {
+            roleEdit = new Menu();
+            roleEdit.setName("Manage Role");
+            roleEdit.setType("BUTTON");
+            roleEdit.setPermCode("admin:roles:edit");
+            roleEdit.setVisible(0);
+            menuRepository.insert(roleEdit);
+        }
+        ensureRoleMenu(adminRole.getId(), roleEdit.getId());
+
+        Menu roleDelete = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:roles:delete"));
+        if (roleDelete == null) {
+            roleDelete = new Menu();
+            roleDelete.setName("Delete Role");
+            roleDelete.setType("BUTTON");
+            roleDelete.setPermCode("admin:roles:delete");
+            roleDelete.setVisible(0);
+            menuRepository.insert(roleDelete);
+        }
+        ensureRoleMenu(adminRole.getId(), roleDelete.getId());
+    }
+
+    private void ensureUserRolePermission() {
+        Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
+        if (adminRole == null) {
+            return;
+        }
+        Menu userRole = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:users:role"));
+        if (userRole == null) {
+            userRole = new Menu();
+            userRole.setName("Assign Role");
+            userRole.setType("BUTTON");
+            userRole.setPermCode("admin:users:role");
+            userRole.setVisible(0);
+            menuRepository.insert(userRole);
+        }
+        ensureRoleMenu(adminRole.getId(), userRole.getId());
+    }
+
+    private void ensureRoleMenu(Long roleId, Long menuId) {
+        if (roleId == null || menuId == null) {
+            return;
+        }
+        Long count = roleMenuRepository.selectCount(new LambdaQueryWrapper<RoleMenu>()
+                .eq(RoleMenu::getRoleId, roleId)
+                .eq(RoleMenu::getMenuId, menuId));
+        if (count == null || count == 0) {
+            RoleMenu rm = new RoleMenu();
+            rm.setRoleId(roleId);
+            rm.setMenuId(menuId);
+            roleMenuRepository.insert(rm);
         }
     }
 
@@ -270,19 +484,19 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initCategories() {
         Category electronics = new Category();
-        electronics.setName("Electronics");
+        electronics.setName("Phones");
         electronics.setParentId(0L);
         electronics.setSort(1);
         electronics.setStatus(1);
 
         Category home = new Category();
-        home.setName("Home");
+        home.setName("Laptops");
         home.setParentId(0L);
         home.setSort(2);
         home.setStatus(1);
 
         Category fashion = new Category();
-        fashion.setName("Fashion");
+        fashion.setName("Accessories");
         fashion.setParentId(0L);
         fashion.setSort(3);
         fashion.setStatus(1);
@@ -294,23 +508,29 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initProducts() {
         List<Category> categories = categoryRepository.selectList(new QueryWrapper<>());
-        Long electronicsId = findCategoryId(categories, "Electronics");
-        Long homeId = findCategoryId(categories, "Home");
-        Long fashionId = findCategoryId(categories, "Fashion");
+        Long electronicsId = findCategoryId(categories, "Phones");
+        Long homeId = findCategoryId(categories, "Laptops");
+        Long fashionId = findCategoryId(categories, "Accessories");
 
         List<Product> products = new ArrayList<>();
-        products.add(buildProduct(electronicsId, "Wireless Headphones", "Noise cancelling, 30h battery",
-                new BigDecimal("199.00"), 120, "https://picsum.photos/seed/headphones/600/400"));
-        products.add(buildProduct(electronicsId, "Smart Watch", "Fitness tracking and notifications",
-                new BigDecimal("249.00"), 80, "https://picsum.photos/seed/watch/600/400"));
-        products.add(buildProduct(homeId, "Coffee Maker", "12-cup brewer with timer",
-                new BigDecimal("89.00"), 60, "https://picsum.photos/seed/coffee/600/400"));
-        products.add(buildProduct(homeId, "Air Purifier", "HEPA filtration for clean air",
-                new BigDecimal("159.00"), 45, "https://picsum.photos/seed/purifier/600/400"));
-        products.add(buildProduct(fashionId, "Canvas Backpack", "Lightweight daily carry",
-                new BigDecimal("69.00"), 150, "https://picsum.photos/seed/backpack/600/400"));
-        products.add(buildProduct(fashionId, "Running Shoes", "Cushioned and breathable",
-                new BigDecimal("129.00"), 95, "https://picsum.photos/seed/shoes/600/400"));
+        products.add(buildProduct(electronicsId, "5G Smartphone", "120Hz display, 64MP camera",
+                new BigDecimal("699.00"), 120,
+                "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=600&q=80"));
+        products.add(buildProduct(electronicsId, "Flagship Phone Pro", "Fast charging, 8GB RAM",
+                new BigDecimal("899.00"), 80,
+                "https://images.unsplash.com/photo-1520923642038-b4259acecbd7?auto=format&fit=crop&w=600&q=80"));
+        products.add(buildProduct(homeId, "Ultrabook Laptop", "13-inch, 16GB RAM, 512GB SSD",
+                new BigDecimal("1299.00"), 60,
+                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80"));
+        products.add(buildProduct(homeId, "Gaming Laptop", "RTX graphics, 144Hz display",
+                new BigDecimal("1599.00"), 45,
+                "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80"));
+        products.add(buildProduct(fashionId, "Wireless Earbuds", "Active noise canceling",
+                new BigDecimal("179.00"), 150,
+                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80"));
+        products.add(buildProduct(fashionId, "Smart Watch", "Health tracking and GPS",
+                new BigDecimal("299.00"), 95,
+                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"));
 
         for (Product product : products) {
             productRepository.insert(product);
@@ -323,11 +543,12 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
         List<Banner> banners = new ArrayList<>();
-        banners.add(buildBanner(products.get(0), 1, "https://picsum.photos/seed/banner1/1200/400"));
+        banners.add(buildBanner(products.get(0), 1,
+                "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=1200&q=80"));
         banners.add(buildBanner(products.get(Math.min(1, products.size() - 1)), 2,
-                "https://picsum.photos/seed/banner2/1200/400"));
+                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80"));
         banners.add(buildBanner(products.get(Math.min(2, products.size() - 1)), 3,
-                "https://picsum.photos/seed/banner3/1200/400"));
+                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80"));
         for (Banner banner : banners) {
             bannerRepository.insert(banner);
         }

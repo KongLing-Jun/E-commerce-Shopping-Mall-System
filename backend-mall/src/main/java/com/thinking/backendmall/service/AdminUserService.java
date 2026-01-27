@@ -9,4 +9,6 @@ public interface AdminUserService {
     void disableUser(Long userId);
 
     void resetPassword(Long userId, String newPassword);
+
+    void updateUserRole(Long userId, Long roleId);
 }

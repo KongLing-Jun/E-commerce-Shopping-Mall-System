@@ -13,9 +13,14 @@ import com.thinking.backendmall.repository.UserRepository;
 import com.thinking.backendmall.service.AdminOrderService;
 import com.thinking.backendmall.vo.AdminOrderView;
 import com.thinking.backendmall.vo.OrderItemView;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,6 +95,60 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         orderRepository.updateById(order);
     }
 
+    @Override
+    public byte[] exportOrders(String orderNo, Long userId, Integer status) {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        if (orderNo != null && !orderNo.isBlank()) {
+            wrapper.eq(Order::getOrderNo, orderNo);
+        }
+        if (userId != null) {
+            wrapper.eq(Order::getUserId, userId);
+        }
+        if (status != null) {
+            wrapper.eq(Order::getStatus, status);
+        }
+        wrapper.orderByDesc(Order::getCreatedAt);
+        List<Order> orders = orderRepository.selectList(wrapper);
+        Map<Long, String> userMap = loadUsers(orders);
+        Map<Long, List<OrderItemView>> itemMap = loadItems(orders);
+
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("orders");
+            int rowIndex = 0;
+            Row header = sheet.createRow(rowIndex++);
+            header.createCell(0).setCellValue("Order No");
+            header.createCell(1).setCellValue("User ID");
+            header.createCell(2).setCellValue("Username");
+            header.createCell(3).setCellValue("Status");
+            header.createCell(4).setCellValue("Total Amount");
+            header.createCell(5).setCellValue("Pay Amount");
+            header.createCell(6).setCellValue("Created At");
+            header.createCell(7).setCellValue("Product ID");
+            header.createCell(8).setCellValue("Product Name");
+            header.createCell(9).setCellValue("Quantity");
+            header.createCell(10).setCellValue("Price");
+
+            for (Order order : orders) {
+                List<OrderItemView> items = itemMap.getOrDefault(order.getId(), new ArrayList<>());
+                if (items.isEmpty()) {
+                    Row row = sheet.createRow(rowIndex++);
+                    fillOrderRow(row, order, userMap.get(order.getUserId()), null);
+                    continue;
+                }
+                for (OrderItemView item : items) {
+                    Row row = sheet.createRow(rowIndex++);
+                    fillOrderRow(row, order, userMap.get(order.getUserId()), item);
+                }
+            }
+
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+        } catch (Exception ex) {
+            throw new BusinessException("Failed to export orders");
+        }
+    }
+
     private Map<Long, String> loadUsers(List<Order> orders) {
         Map<Long, String> userMap = new HashMap<>();
         if (orders.isEmpty()) {
@@ -126,5 +185,26 @@ public class AdminOrderServiceImpl implements AdminOrderService {
             itemMap.computeIfAbsent(item.getOrderId(), key -> new ArrayList<>()).add(view);
         }
         return itemMap;
+    }
+
+    private void fillOrderRow(Row row, Order order, String username, OrderItemView item) {
+        row.createCell(0).setCellValue(order.getOrderNo());
+        row.createCell(1).setCellValue(order.getUserId() == null ? "" : String.valueOf(order.getUserId()));
+        row.createCell(2).setCellValue(username == null ? "" : username);
+        row.createCell(3).setCellValue(order.getStatus() == null ? "" : String.valueOf(order.getStatus()));
+        row.createCell(4).setCellValue(order.getTotalAmount() == null ? "" : order.getTotalAmount().toString());
+        row.createCell(5).setCellValue(order.getPayAmount() == null ? "" : order.getPayAmount().toString());
+        row.createCell(6).setCellValue(order.getCreatedAt() == null ? "" : order.getCreatedAt().toString());
+        if (item == null) {
+            row.createCell(7).setCellValue("");
+            row.createCell(8).setCellValue("");
+            row.createCell(9).setCellValue("");
+            row.createCell(10).setCellValue("");
+        } else {
+            row.createCell(7).setCellValue(item.getProductId() == null ? "" : String.valueOf(item.getProductId()));
+            row.createCell(8).setCellValue(item.getProductName() == null ? "" : item.getProductName());
+            row.createCell(9).setCellValue(item.getQuantity() == null ? "" : String.valueOf(item.getQuantity()));
+            row.createCell(10).setCellValue(item.getPrice() == null ? "" : item.getPrice().toString());
+        }
     }
 }

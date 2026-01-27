@@ -7,4 +7,6 @@ public interface AdminOrderService {
     PageResult<AdminOrderView> listOrders(String orderNo, Long userId, Integer status, int page, int size);
 
     void shipOrder(String orderNo);
+
+    byte[] exportOrders(String orderNo, Long userId, Integer status);
 }

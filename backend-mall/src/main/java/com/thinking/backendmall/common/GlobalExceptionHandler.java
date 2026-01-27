@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import com.thinking.backendmall.common.ErrorCode;
+
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
@@ -16,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
-        return Result.error("Internal server error");
+        return Result.error(ErrorCode.SERVER_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -24,7 +26,7 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getAllErrors().isEmpty()
                 ? "Validation failed"
                 : e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-        return Result.error(400, message);
+        return Result.error(ErrorCode.BAD_REQUEST.getCode(), message);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -32,6 +34,6 @@ public class GlobalExceptionHandler {
         String message = e.getConstraintViolations().isEmpty()
                 ? "Validation failed"
                 : e.getConstraintViolations().iterator().next().getMessage();
-        return Result.error(400, message);
+        return Result.error(ErrorCode.BAD_REQUEST.getCode(), message);
     }
 }

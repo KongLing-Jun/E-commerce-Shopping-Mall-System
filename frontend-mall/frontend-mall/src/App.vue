@@ -4,11 +4,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuth } from '@/composables/useAuth.js'
 import { logout as logoutApi } from '@/api/auth.js'
-import { fetchMyMenus } from '@/api/menus.js'
+import { fetchMyMenus, fetchMyPerms } from '@/api/menus.js'
+import { useI18n } from '@/i18n/index.js'
+import { useTheme } from '@/composables/useTheme.js'
 
 const router = useRouter()
 const route = useRoute()
 const { isLoggedIn, isAdmin, refreshAuth } = useAuth()
+const { locale, setLocale, t, availableLocales } = useI18n()
+const { theme, applyTheme, initTheme } = useTheme()
 
 const menuTree = ref([])
 
@@ -29,6 +33,22 @@ const adminMenuItems = computed(() => {
   const flat = flattenMenus(menuTree.value, [])
   return flat.filter((menu) => menu.path && menu.path.startsWith('/admin'))
 })
+
+const menuLabelMap = {
+  AdminUsers: 'nav.adminUsers',
+  AdminRoles: 'nav.adminRoles',
+  AdminProducts: 'nav.adminProducts',
+  AdminCategories: 'nav.adminCategories',
+  AdminOrders: 'nav.adminOrders',
+  AdminBanners: 'nav.adminBanners',
+  AdminCarts: 'nav.adminCarts',
+  AdminStats: 'nav.adminStats',
+}
+
+const resolveMenuLabel = (menu) => {
+  const key = menuLabelMap[menu.component]
+  return key ? t(key) : menu.name
+}
 
 const adminDefaultPath = computed(() => adminMenuItems.value[0]?.path || '/admin')
 
@@ -51,9 +71,12 @@ const loadMenus = async () => {
     return
   }
   try {
-    const res = await fetchMyMenus()
-    if (res.code === 200) {
-      menuTree.value = res.data || []
+    const [menuRes, permRes] = await Promise.all([fetchMyMenus(), fetchMyPerms()])
+    if (menuRes.code === 200) {
+      menuTree.value = menuRes.data || []
+    }
+    if (permRes.code === 200) {
+      localStorage.setItem('perms', JSON.stringify(permRes.data || []))
     }
   } catch (error) {
     menuTree.value = []
@@ -69,6 +92,8 @@ watch(isLoggedIn, (value) => {
 })
 
 onMounted(() => {
+  initTheme()
+  setLocale(locale.value)
   if (isLoggedIn.value) {
     loadMenus()
   }
@@ -83,9 +108,10 @@ const logout = async () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userId')
   localStorage.removeItem('roleKey')
+  localStorage.removeItem('perms')
   refreshAuth()
   window.dispatchEvent(new Event('auth-changed'))
-  ElMessage.success('Signed out')
+  ElMessage.success(t('auth.logoutSuccess'))
   router.push('/login')
 }
 </script>
@@ -102,7 +128,7 @@ const logout = async () => {
     <el-container class="min-h-screen">
       <el-header
         height="72px"
-        class="sticky top-0 z-20 border-b border-white/60 bg-white/70 backdrop-blur"
+        class="sticky top-0 z-20 border-b border-white/60 bg-[var(--surface)] backdrop-blur"
       >
         <div class="mx-auto flex h-full w-full max-w-6xl items-center justify-between px-6">
           <div class="flex items-center gap-6">
@@ -125,34 +151,56 @@ const logout = async () => {
               router
               class="border-0 bg-transparent"
             >
-              <el-menu-item index="/" :disabled="!isLoggedIn">Home</el-menu-item>
-              <el-menu-item index="/products" :disabled="!isLoggedIn">Products</el-menu-item>
-              <el-menu-item index="/cart" :disabled="!isLoggedIn">Cart</el-menu-item>
-              <el-menu-item index="/orders" :disabled="!isLoggedIn">Orders</el-menu-item>
-              <el-menu-item index="/addresses" :disabled="!isLoggedIn">Addresses</el-menu-item>
+              <el-menu-item index="/" :disabled="!isLoggedIn">{{ t('nav.home') }}</el-menu-item>
+              <el-menu-item index="/products" :disabled="!isLoggedIn">{{ t('nav.products') }}</el-menu-item>
+              <el-menu-item index="/cart" :disabled="!isLoggedIn">{{ t('nav.cart') }}</el-menu-item>
+              <el-menu-item index="/orders" :disabled="!isLoggedIn">{{ t('nav.orders') }}</el-menu-item>
+              <el-menu-item index="/profile" :disabled="!isLoggedIn">{{ t('nav.profile') }}</el-menu-item>
+              <el-menu-item index="/addresses" :disabled="!isLoggedIn">{{ t('nav.addresses') }}</el-menu-item>
               <el-sub-menu v-if="isAdmin && adminMenuItems.length" index="/admin">
-                <template #title>Admin</template>
+                <template #title>{{ t('nav.admin') }}</template>
                 <el-menu-item
                   v-for="menu in adminMenuItems"
                   :key="menu.path"
                   :index="menu.path"
                 >
-                  {{ menu.name }}
+                  {{ resolveMenuLabel(menu) }}
                 </el-menu-item>
               </el-sub-menu>
             </el-menu>
           </div>
 
           <div class="flex items-center gap-3">
+            <el-select
+              v-model="locale"
+              size="small"
+              class="w-24"
+              @change="setLocale"
+            >
+              <el-option
+                v-for="option in availableLocales"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+            <el-switch
+              v-model="theme"
+              active-value="dark"
+              inactive-value="light"
+              :active-text="t('theme.dark')"
+              :inactive-text="t('theme.light')"
+              @change="applyTheme"
+            />
             <template v-if="!isLoggedIn">
-              <el-button size="small" text @click="router.push('/login')">Sign in</el-button>
+              <el-button size="small" text @click="router.push('/login')">{{ t('nav.signIn') }}</el-button>
               <el-button size="small" type="primary" @click="router.push('/register')">
-                Create account
+                {{ t('nav.createAccount') }}
               </el-button>
             </template>
             <template v-else>
-              <el-tag type="success" round>Signed in</el-tag>
-              <el-button size="small" @click="logout">Sign out</el-button>
+              <el-tag type="success" round>{{ t('nav.signedIn') }}</el-tag>
+              <el-button size="small" @click="logout">{{ t('nav.signOut') }}</el-button>
             </template>
           </div>
         </div>
@@ -166,3 +214,4 @@ const logout = async () => {
     </el-container>
   </div>
 </template>
+

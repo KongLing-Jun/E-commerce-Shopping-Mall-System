@@ -8,14 +8,18 @@ import Cart from '@/views/Cart.vue'
 import Address from '@/views/Address.vue'
 import OrderConfirm from '@/views/OrderConfirm.vue'
 import OrderList from '@/views/OrderList.vue'
+import UserProfile from '@/views/UserProfile.vue'
 import { fetchMyMenus } from '@/api/menus.js'
 
 const adminRouteMap = {
   AdminUsers: () => import('@/views/admin/AdminUsers.vue'),
+  AdminRoles: () => import('@/views/admin/AdminRoles.vue'),
   AdminProducts: () => import('@/views/admin/AdminProducts.vue'),
+  AdminCategories: () => import('@/views/admin/AdminCategories.vue'),
   AdminCarts: () => import('@/views/admin/AdminCarts.vue'),
   AdminOrders: () => import('@/views/admin/AdminOrders.vue'),
   AdminBanners: () => import('@/views/admin/AdminBanners.vue'),
+  AdminStats: () => import('@/views/admin/AdminStats.vue'),
 }
 
 const router = createRouter({
@@ -65,6 +69,11 @@ const router = createRouter({
       path: '/orders',
       name: 'OrderList',
       component: OrderList,
+    },
+    {
+      path: '/profile',
+      name: 'UserProfile',
+      component: UserProfile,
     },
   ],
 })

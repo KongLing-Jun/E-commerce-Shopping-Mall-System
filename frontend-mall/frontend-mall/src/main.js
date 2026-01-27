@@ -6,11 +6,13 @@ import './assets/main.css'
 
 import App from './App.vue'
 import router from './router'
+import { permissionDirective } from './directives/permission.js'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
 app.use(ElementPlus)
+app.directive('permission', permissionDirective)
 
 app.mount('#app')

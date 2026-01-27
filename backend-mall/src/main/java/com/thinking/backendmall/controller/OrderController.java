@@ -1,6 +1,7 @@
 package com.thinking.backendmall.controller;
 
 import com.thinking.backendmall.common.BusinessException;
+import com.thinking.backendmall.common.ErrorCode;
 import com.thinking.backendmall.common.PageResult;
 import com.thinking.backendmall.common.Result;
 import com.thinking.backendmall.config.security.AuthContext;
@@ -60,7 +61,7 @@ public class OrderController {
     private Long requireUserId() {
         Long userId = AuthContext.getUserId();
         if (userId == null) {
-            throw new BusinessException(401, "Unauthorized");
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
         return userId;
     }

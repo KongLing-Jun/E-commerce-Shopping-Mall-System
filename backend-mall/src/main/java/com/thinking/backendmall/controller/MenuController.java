@@ -1,6 +1,7 @@
 package com.thinking.backendmall.controller;
 
 import com.thinking.backendmall.common.BusinessException;
+import com.thinking.backendmall.common.ErrorCode;
 import com.thinking.backendmall.common.Result;
 import com.thinking.backendmall.config.security.AuthContext;
 import com.thinking.backendmall.service.MenuService;
@@ -21,10 +22,19 @@ public class MenuController {
 
     @GetMapping("/my")
     public Result<List<MenuTreeNode>> listMyMenus() {
+        return Result.success(menuService.listMyMenus(requireRoleKey()));
+    }
+
+    @GetMapping("/perms")
+    public Result<List<String>> listMyPerms() {
+        return Result.success(menuService.listMyPerms(requireRoleKey()));
+    }
+
+    private String requireRoleKey() {
         String roleKey = AuthContext.getRoleKey();
         if (roleKey == null) {
-            throw new BusinessException(401, "Unauthorized");
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
-        return Result.success(menuService.listMyMenus(roleKey));
+        return roleKey;
     }
 }

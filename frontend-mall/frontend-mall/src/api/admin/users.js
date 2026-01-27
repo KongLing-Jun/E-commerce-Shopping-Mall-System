@@ -11,3 +11,7 @@ export const disableAdminUser = (id) => {
 export const resetAdminUserPassword = (id, data) => {
   return request.put(`/api/admin/users/${id}/reset-password`, data)
 }
+
+export const updateAdminUserRole = (id, data) => {
+  return request.put(`/api/admin/users/${id}/role`, data)
+}

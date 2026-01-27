@@ -20,6 +20,11 @@ public final class AuthContext {
         return user == null ? null : user.getRoleKey();
     }
 
+    public static String getUsername() {
+        AuthUser user = HOLDER.get();
+        return user == null ? null : user.getUsername();
+    }
+
     public static void clear() {
         HOLDER.remove();
     }

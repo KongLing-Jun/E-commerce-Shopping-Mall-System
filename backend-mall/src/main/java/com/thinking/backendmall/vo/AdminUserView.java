@@ -7,7 +7,9 @@ public class AdminUserView {
     private String username;
     private String phone;
     private Integer status;
+    private Long roleId;
     private String roleKey;
+    private String roleName;
     private LocalDateTime createdAt;
 
     public Long getId() {
@@ -42,12 +44,28 @@ public class AdminUserView {
         this.status = status;
     }
 
+    public Long getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
+    }
+
     public String getRoleKey() {
         return roleKey;
     }
 
     public void setRoleKey(String roleKey) {
         this.roleKey = roleKey;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     public LocalDateTime getCreatedAt() {
