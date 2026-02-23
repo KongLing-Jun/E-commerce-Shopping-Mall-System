@@ -30,10 +30,26 @@ public class HomeController {
     @GetMapping("/recommend")
     public Result<Map<String, Object>> getRecommend() {
         List<Category> categories = homeService.getCategories();
-        List<Product> products = homeService.getRecommendProducts();
+        List<Product> recommendProducts = homeService.getRecommendProducts();
+        List<Product> hotProducts = homeService.getHotProducts();
+        List<Product> promoProducts = homeService.getPromoProducts();
         Map<String, Object> result = new HashMap<>();
         result.put("categories", categories);
-        result.put("products", products);
+        // Keep "products" for backward compatibility with existing frontend.
+        result.put("products", recommendProducts);
+        result.put("recommendProducts", recommendProducts);
+        result.put("hotProducts", hotProducts);
+        result.put("promoProducts", promoProducts);
         return Result.success(result);
+    }
+
+    @GetMapping("/hot")
+    public Result<List<Product>> getHotProducts() {
+        return Result.success(homeService.getHotProducts());
+    }
+
+    @GetMapping("/promo")
+    public Result<List<Product>> getPromoProducts() {
+        return Result.success(homeService.getPromoProducts());
     }
 }

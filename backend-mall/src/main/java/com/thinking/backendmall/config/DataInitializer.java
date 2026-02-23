@@ -6,6 +6,7 @@ import com.thinking.backendmall.entity.Banner;
 import com.thinking.backendmall.entity.Category;
 import com.thinking.backendmall.entity.Menu;
 import com.thinking.backendmall.entity.Product;
+import com.thinking.backendmall.entity.ProductImage;
 import com.thinking.backendmall.entity.Role;
 import com.thinking.backendmall.entity.RoleMenu;
 import com.thinking.backendmall.entity.User;
@@ -13,6 +14,7 @@ import com.thinking.backendmall.repository.BannerRepository;
 import com.thinking.backendmall.repository.CategoryRepository;
 import com.thinking.backendmall.repository.MenuRepository;
 import com.thinking.backendmall.repository.ProductRepository;
+import com.thinking.backendmall.repository.ProductImageRepository;
 import com.thinking.backendmall.repository.RoleMenuRepository;
 import com.thinking.backendmall.repository.RoleRepository;
 import com.thinking.backendmall.repository.UserRepository;
@@ -50,6 +52,9 @@ public class DataInitializer implements CommandLineRunner {
     private ProductRepository productRepository;
 
     @Autowired
+    private ProductImageRepository productImageRepository;
+
+    @Autowired
     private BannerRepository bannerRepository;
 
     @Autowired
@@ -69,6 +74,7 @@ public class DataInitializer implements CommandLineRunner {
         ensureCategoryMenus();
         ensureRoleMenus();
         ensureUserRolePermission();
+        ensureUserCrudPermissions();
         if (userRepository.selectCount(new QueryWrapper<>()) == 0) {
             initUsers();
         }
@@ -77,6 +83,10 @@ public class DataInitializer implements CommandLineRunner {
         }
         if (productRepository.selectCount(new QueryWrapper<>()) == 0) {
             initProducts();
+        }
+        normalizeLegacyProductsToThreeC();
+        if (productImageRepository.selectCount(new QueryWrapper<>()) == 0) {
+            initProductImages();
         }
         if (bannerRepository.selectCount(new QueryWrapper<>()) == 0) {
             initBanners();
@@ -217,6 +227,20 @@ public class DataInitializer implements CommandLineRunner {
         userRole.setPermCode("admin:users:role");
         userRole.setVisible(0);
         menuRepository.insert(userRole);
+
+        Menu userCreate = new Menu();
+        userCreate.setName("Create User");
+        userCreate.setType("BUTTON");
+        userCreate.setPermCode("admin:users:create");
+        userCreate.setVisible(0);
+        menuRepository.insert(userCreate);
+
+        Menu userEdit = new Menu();
+        userEdit.setName("Edit User");
+        userEdit.setType("BUTTON");
+        userEdit.setPermCode("admin:users:edit");
+        userEdit.setVisible(0);
+        menuRepository.insert(userEdit);
 
         Menu roleEdit = new Menu();
         roleEdit.setName("Manage Role");
@@ -441,6 +465,37 @@ public class DataInitializer implements CommandLineRunner {
         ensureRoleMenu(adminRole.getId(), userRole.getId());
     }
 
+    private void ensureUserCrudPermissions() {
+        Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
+        if (adminRole == null) {
+            return;
+        }
+
+        Menu userCreate = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:users:create"));
+        if (userCreate == null) {
+            userCreate = new Menu();
+            userCreate.setName("Create User");
+            userCreate.setType("BUTTON");
+            userCreate.setPermCode("admin:users:create");
+            userCreate.setVisible(0);
+            menuRepository.insert(userCreate);
+        }
+        ensureRoleMenu(adminRole.getId(), userCreate.getId());
+
+        Menu userEdit = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
+                .eq(Menu::getPermCode, "admin:users:edit"));
+        if (userEdit == null) {
+            userEdit = new Menu();
+            userEdit.setName("Edit User");
+            userEdit.setType("BUTTON");
+            userEdit.setPermCode("admin:users:edit");
+            userEdit.setVisible(0);
+            menuRepository.insert(userEdit);
+        }
+        ensureRoleMenu(adminRole.getId(), userEdit.getId());
+    }
+
     private void ensureRoleMenu(Long roleId, Long menuId) {
         if (roleId == null || menuId == null) {
             return;
@@ -508,29 +563,29 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initProducts() {
         List<Category> categories = categoryRepository.selectList(new QueryWrapper<>());
-        Long electronicsId = findCategoryId(categories, "Phones");
-        Long homeId = findCategoryId(categories, "Laptops");
-        Long fashionId = findCategoryId(categories, "Accessories");
+        Long phoneId = findCategoryId(categories, "Phones");
+        Long laptopId = findCategoryId(categories, "Laptops");
+        Long accessoryId = findCategoryId(categories, "Accessories");
 
         List<Product> products = new ArrayList<>();
-        products.add(buildProduct(electronicsId, "5G Smartphone", "120Hz display, 64MP camera",
+        products.add(buildProduct(phoneId, "X90 5G Smartphone", "120Hz AMOLED display, 64MP camera",
                 new BigDecimal("699.00"), 120,
-                "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=600&q=80"));
-        products.add(buildProduct(electronicsId, "Flagship Phone Pro", "Fast charging, 8GB RAM",
+                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"));
+        products.add(buildProduct(phoneId, "Fold Pro Phone", "Foldable screen, 67W fast charging",
                 new BigDecimal("899.00"), 80,
-                "https://images.unsplash.com/photo-1520923642038-b4259acecbd7?auto=format&fit=crop&w=600&q=80"));
-        products.add(buildProduct(homeId, "Ultrabook Laptop", "13-inch, 16GB RAM, 512GB SSD",
+                "https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=900&q=80"));
+        products.add(buildProduct(laptopId, "AirBook 14 Laptop", "14-inch, 16GB RAM, 512GB SSD",
                 new BigDecimal("1299.00"), 60,
-                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80"));
-        products.add(buildProduct(homeId, "Gaming Laptop", "RTX graphics, 144Hz display",
+                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"));
+        products.add(buildProduct(laptopId, "Thunder G7 Gaming Laptop", "RTX graphics, 165Hz display",
                 new BigDecimal("1599.00"), 45,
-                "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80"));
-        products.add(buildProduct(fashionId, "Wireless Earbuds", "Active noise canceling",
+                "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80"));
+        products.add(buildProduct(accessoryId, "Buds Air Earbuds", "Active noise cancellation, low latency",
                 new BigDecimal("179.00"), 150,
-                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80"));
-        products.add(buildProduct(fashionId, "Smart Watch", "Health tracking and GPS",
+                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80"));
+        products.add(buildProduct(accessoryId, "Watch S8 Smartwatch", "Health tracking, GPS and NFC",
                 new BigDecimal("299.00"), 95,
-                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"));
+                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80"));
 
         for (Product product : products) {
             productRepository.insert(product);
@@ -544,14 +599,150 @@ public class DataInitializer implements CommandLineRunner {
         }
         List<Banner> banners = new ArrayList<>();
         banners.add(buildBanner(products.get(0), 1,
-                "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=1200&q=80"));
+                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1400&q=80"));
         banners.add(buildBanner(products.get(Math.min(1, products.size() - 1)), 2,
-                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80"));
+                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1400&q=80"));
         banners.add(buildBanner(products.get(Math.min(2, products.size() - 1)), 3,
-                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80"));
+                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1400&q=80"));
         for (Banner banner : banners) {
             bannerRepository.insert(banner);
         }
+    }
+
+    private void initProductImages() {
+        List<Product> products = productRepository.selectList(new QueryWrapper<>());
+        for (Product product : products) {
+            refreshProductGallery(product);
+        }
+    }
+
+    private void normalizeLegacyProductsToThreeC() {
+        List<Product> products = productRepository.selectList(new QueryWrapper<>());
+        if (products.isEmpty()) {
+            return;
+        }
+        List<Category> categories = categoryRepository.selectList(new QueryWrapper<>());
+        Long phoneId = findCategoryId(categories, "Phones");
+        Long laptopId = findCategoryId(categories, "Laptops");
+        Long accessoryId = findCategoryId(categories, "Accessories");
+
+        for (Product product : products) {
+            String name = product.getName() == null ? "" : product.getName().toLowerCase();
+            boolean changed = false;
+
+            if (containsAny(name, "chair", "plant", "jacket", "backpack", "sneaker", "shoe", "bottle", "book", "coffee")) {
+                if (containsAny(name, "chair")) {
+                    applyLegacyReplacement(product, accessoryId, "Bluetooth Soundbar S8",
+                            "2.1 channel soundbar with wireless subwoofer", new BigDecimal("249.00"),
+                            "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=900&q=80");
+                } else if (containsAny(name, "jacket")) {
+                    applyLegacyReplacement(product, accessoryId, "Portable SSD 1TB",
+                            "USB 3.2 Gen2 transfer, compact metal body", new BigDecimal("169.00"),
+                            "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=900&q=80");
+                } else if (containsAny(name, "plant", "bottle")) {
+                    applyLegacyReplacement(product, accessoryId, "GaN Charger 100W",
+                            "Multi-port fast charging for phone and laptop", new BigDecimal("89.00"),
+                            "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=900&q=80");
+                } else if (containsAny(name, "book", "coffee")) {
+                    applyLegacyReplacement(product, laptopId, "27-inch 4K Monitor",
+                            "IPS panel, HDR, USB-C docking", new BigDecimal("459.00"),
+                            "https://images.unsplash.com/photo-1527443224154-c4e9d81f5f7d?auto=format&fit=crop&w=900&q=80");
+                } else if (containsAny(name, "backpack")) {
+                    applyLegacyReplacement(product, accessoryId, "Wireless Mouse Pro",
+                            "Dual-mode Bluetooth + 2.4G, silent click", new BigDecimal("59.00"),
+                            "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=900&q=80");
+                } else if (containsAny(name, "sneaker", "shoe")) {
+                    applyLegacyReplacement(product, accessoryId, "Gaming Headset H7",
+                            "7.1 surround sound, detachable microphone", new BigDecimal("129.00"),
+                            "https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=900&q=80");
+                }
+                changed = true;
+            }
+
+            if (changed) {
+                productRepository.updateById(product);
+                refreshProductGallery(product);
+            }
+        }
+    }
+
+    private void applyLegacyReplacement(Product product, Long categoryId, String name, String brief, BigDecimal price, String coverUrl) {
+        product.setCategoryId(categoryId);
+        product.setName(name);
+        product.setBrief(brief);
+        product.setPrice(price);
+        product.setCoverUrl(coverUrl);
+        product.setStatus("ON");
+        product.setDetailHtml("<p>" + brief + "</p>");
+        if (product.getCreatedAt() == null) {
+            product.setCreatedAt(LocalDateTime.now());
+        }
+    }
+
+    private void refreshProductGallery(Product product) {
+        if (product == null || product.getId() == null) {
+            return;
+        }
+        productImageRepository.delete(new LambdaQueryWrapper<ProductImage>()
+                .eq(ProductImage::getProductId, product.getId()));
+        List<String> gallery = resolveThreeCImageSet(product);
+        for (int i = 0; i < gallery.size(); i++) {
+            ProductImage image = new ProductImage();
+            image.setProductId(product.getId());
+            image.setUrl(gallery.get(i));
+            image.setSort(i + 1);
+            productImageRepository.insert(image);
+        }
+    }
+
+    private List<String> resolveThreeCImageSet(Product product) {
+        String name = product.getName() == null ? "" : product.getName().toLowerCase();
+        if (containsAny(name, "phone", "smartphone")) {
+            return Arrays.asList(
+                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=900&q=80"
+            );
+        }
+        if (containsAny(name, "laptop", "notebook")) {
+            return Arrays.asList(
+                    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1484788984921-03950022c9ef?auto=format&fit=crop&w=900&q=80"
+            );
+        }
+        if (containsAny(name, "earbud", "headphone", "headset", "buds")) {
+            return Arrays.asList(
+                    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1545127398-14699f92334b?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=900&q=80"
+            );
+        }
+        if (containsAny(name, "watch")) {
+            return Arrays.asList(
+                    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1579586337278-3f436f25d4d0?auto=format&fit=crop&w=900&q=80"
+            );
+        }
+        if (product.getCoverUrl() != null && !product.getCoverUrl().isBlank()) {
+            return Arrays.asList(product.getCoverUrl());
+        }
+        return Arrays.asList(
+                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
+        );
+    }
+
+    private boolean containsAny(String source, String... keywords) {
+        if (source == null || source.isBlank()) {
+            return false;
+        }
+        for (String keyword : keywords) {
+            if (source.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Long findCategoryId(List<Category> categories, String name) {

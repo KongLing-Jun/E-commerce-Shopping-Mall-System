@@ -23,5 +23,14 @@ export default defineConfig([
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
 
+  {
+    rules: {
+      // Keep single-word page component names (Home/Login/Cart) in this project.
+      'vue/multi-word-component-names': 'off',
+      // Do not fail lint on unused catch variables while preserving other checks.
+      'no-unused-vars': ['warn', { caughtErrors: 'none' }],
+    },
+  },
+
   skipFormatting,
 ])

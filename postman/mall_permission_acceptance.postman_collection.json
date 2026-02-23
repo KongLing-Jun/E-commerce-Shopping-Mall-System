@@ -1,0 +1,379 @@
+{
+  "info": {
+    "name": "Mall Permission Acceptance",
+    "description": "权限验收脚本：普通用户与管理员两套 token，逐条验证 401/403/可访问接口",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Guest - User Endpoint Should Be 401",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/orders?page=0&size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 401', function () { pm.response.to.have.status(401); });",
+              "let json = null; try { json = pm.response.json(); } catch (e) {}",
+              "if (json && json.code !== undefined) {",
+              "  pm.test('body code 401', function () { pm.expect(json.code).to.eql(401); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Guest - Admin Endpoint Should Be 401",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/admin/users?page=0&size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 401', function () { pm.response.to.have.status(401); });",
+              "let json = null; try { json = pm.response.json(); } catch (e) {}",
+              "if (json && json.code !== undefined) {",
+              "  pm.test('body code 401', function () { pm.expect(json.code).to.eql(401); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Invalid JWT - Protected Endpoint Should Be 401",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer invalid.jwt.token"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders?page=0&size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 401', function () { pm.response.to.have.status(401); });",
+              "let json = null; try { json = pm.response.json(); } catch (e) {}",
+              "if (json && json.code !== undefined) {",
+              "  pm.test('body code 401', function () { pm.expect(json.code).to.eql(401); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. User Login - Save userToken",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{userUsername}}\",\"password\":\"{{userPassword}}\"}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });",
+              "pm.test('role is USER', function () { pm.expect(json.data.roleKey).to.eql('USER'); });",
+              "pm.test('token exists', function () { pm.expect(json.data.token).to.be.a('string'); });",
+              "pm.test('menus/perms arrays returned', function () {",
+              "  pm.expect(Array.isArray(json.data.menus)).to.eql(true);",
+              "  pm.expect(Array.isArray(json.data.perms)).to.eql(true);",
+              "});",
+              "pm.environment.set('userToken', json.data.token);",
+              "pm.environment.set('userId', json.data.userId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. User - Menus Endpoint Should Be 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/menus/my"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });",
+              "pm.test('menus is array', function () { pm.expect(Array.isArray(json.data)).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. User - User Endpoint Should Be 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders?page=0&size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. User - Perms Endpoint Should Be 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/menus/perms"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });",
+              "pm.test('perms is array', function () { pm.expect(Array.isArray(json.data)).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. User - Admin Users Should Be 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/users?page=0&size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 403', function () { pm.response.to.have.status(403); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 403', function () { pm.expect(json.code).to.eql(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. User - Admin Menus Tree Should Be 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/menus/tree"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 403', function () { pm.response.to.have.status(403); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 403', function () { pm.expect(json.code).to.eql(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Admin Login - Save adminToken",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{adminUsername}}\",\"password\":\"{{adminPassword}}\"}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });",
+              "pm.test('role is ADMIN', function () { pm.expect(json.data.roleKey).to.eql('ADMIN'); });",
+              "pm.test('token exists', function () { pm.expect(json.data.token).to.be.a('string'); });",
+              "pm.test('menus/perms arrays returned', function () {",
+              "  pm.expect(Array.isArray(json.data.menus)).to.eql(true);",
+              "  pm.expect(Array.isArray(json.data.perms)).to.eql(true);",
+              "});",
+              "pm.environment.set('adminToken', json.data.token);",
+              "pm.environment.set('adminId', json.data.userId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Admin - Admin Users Should Be 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/users?page=0&size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Admin - Admin Orders Should Be 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/orders?page=0&size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Admin - Admin Menus Tree Should Be 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/menus/tree"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Admin - Admin Stats Should Be 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/stats/overview"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('body code 200', function () { pm.expect(json.code).to.eql(200); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

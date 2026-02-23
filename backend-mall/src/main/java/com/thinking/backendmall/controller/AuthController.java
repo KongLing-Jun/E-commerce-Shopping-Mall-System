@@ -1,9 +1,11 @@
 package com.thinking.backendmall.controller;
 
 import com.thinking.backendmall.common.Result;
+import com.thinking.backendmall.config.security.AuthContext;
 import com.thinking.backendmall.dto.AuthLoginRequest;
 import com.thinking.backendmall.dto.AuthRegisterRequest;
 import com.thinking.backendmall.service.AuthService;
+import com.thinking.backendmall.service.MenuService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -22,6 +24,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private MenuService menuService;
 
     @PostMapping("/register")
     public Result<Map<String, Object>> register(@Valid @RequestBody AuthRegisterRequest body) {
@@ -42,10 +47,29 @@ public class AuthController {
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
     public Result<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            authService.logout(header.substring(7));
+        }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             new SecurityContextLogoutHandler().logout(request, response, authentication);
         }
         return Result.success();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public Result<Map<String, Object>> me() {
+        Long userId = AuthContext.getUserId();
+        String username = AuthContext.getUsername();
+        String roleKey = AuthContext.getRoleKey();
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("userId", userId);
+        result.put("username", username);
+        result.put("roleKey", roleKey);
+        result.put("menus", menuService.listMyMenus(roleKey));
+        result.put("perms", menuService.listMyPerms(roleKey));
+        return Result.success(result);
     }
 }

@@ -8,6 +8,7 @@ import com.thinking.backendmall.entity.User;
 import com.thinking.backendmall.repository.RoleRepository;
 import com.thinking.backendmall.repository.UserRepository;
 import com.thinking.backendmall.service.AuthService;
+import com.thinking.backendmall.service.MenuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -30,6 +31,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private MenuService menuService;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -111,7 +115,25 @@ public class AuthServiceImpl implements AuthService {
         result.put("token", token);
         result.put("userId", user.getId());
         result.put("roleKey", roleKey);
+        result.put("menus", menuService.listMyMenus(roleKey));
+        result.put("perms", menuService.listMyPerms(roleKey));
         return result;
+    }
+
+    @Override
+    public void logout(String token) {
+        if (token == null || token.isBlank()) {
+            return;
+        }
+        try {
+            var claims = jwtUtil.getClaimsFromToken(token);
+            long ttl = claims.getExpiration().getTime() - System.currentTimeMillis();
+            if (ttl > 0) {
+                redisTemplate.opsForValue().set(tokenBlacklistKey(token), "1", ttl, TimeUnit.MILLISECONDS);
+            }
+        } catch (Exception ex) {
+            // Ignore invalid token or Redis failures for logout API.
+        }
     }
 
     private boolean isLocked(String username) {
@@ -157,5 +179,9 @@ public class AuthServiceImpl implements AuthService {
 
     private String loginFailKey(String username) {
         return "login:fail:" + username.toLowerCase();
+    }
+
+    private String tokenBlacklistKey(String token) {
+        return "jwt:blacklist:" + token;
     }
 }

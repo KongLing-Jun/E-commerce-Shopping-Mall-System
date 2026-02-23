@@ -1,37 +1,60 @@
-﻿<template>
+<template>
   <section class="space-y-6">
-    <div>
-      <p class="text-xs uppercase tracking-[0.35em] text-[var(--muted)]">Admin Console</p>
-      <h1 class="section-title mt-3">{{ t('admin.usersTitle') }}</h1>
-      <p class="muted-text mt-2">{{ t('admin.usersSubtitle') }}</p>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="section-title">{{ t('admin.usersTitle') }}</h1>
+        <p class="muted-text mt-2">{{ t('admin.usersSubtitle') }}</p>
+      </div>
+      <el-button type="primary" size="large" v-permission="'admin:users:create'" @click="openCreateDialog">
+        + {{ t('admin.addUser') }}
+      </el-button>
     </div>
 
-    <el-card class="border-0 bg-[var(--surface)] shadow-soft">
-      <div class="flex flex-wrap items-end gap-3">
-        <el-input v-model="filters.keyword" :placeholder="t('productList.searchPlaceholder')" clearable class="w-60" />
-        <el-button type="primary" @click="fetchUsers">{{ t('common.search') }}</el-button>
-        <el-button @click="resetFilters">{{ t('common.reset') }}</el-button>
-      </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <el-input
+        v-model="filters.keyword"
+        :placeholder="t('admin.userSearchPlaceholder')"
+        clearable
+        class="max-w-xl flex-1"
+        @keyup.enter="fetchUsers"
+      />
+      <el-button @click="fetchUsers">{{ t('common.search') }}</el-button>
+      <el-button @click="resetFilters">{{ t('common.reset') }}</el-button>
+      <el-button @click="exportCsv">{{ t('admin.exportCsv') }}</el-button>
+    </div>
 
-      <el-table :data="users" class="mt-6" v-loading="loading" stripe>
-        <el-table-column prop="id" label="ID" width="90" />
-        <el-table-column prop="username" :label="t('auth.username')" min-width="140" />
-        <el-table-column prop="phone" :label="t('auth.phone')" min-width="140" />
-        <el-table-column prop="roleName" :label="t('admin.roleName')" min-width="160">
+    <article class="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+      <el-table :data="users" v-loading="loading" stripe>
+        <el-table-column :label="t('auth.username')" min-width="260">
           <template #default="{ row }">
-            <span>{{ row.roleName || row.roleKey || '-' }}</span>
+            <div class="flex items-center gap-3">
+              <div class="grid h-12 w-12 place-content-center rounded-full bg-[var(--highlight)] font-bold text-[var(--accent)]">
+                {{ initials(row.username) }}
+              </div>
+              <div>
+                <div class="text-base font-bold">{{ row.username }}</div>
+                <div class="text-sm text-[var(--muted)]">ID: {{ row.id }}</div>
+              </div>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.status')" width="120">
+        <el-table-column :label="t('admin.roleName')" min-width="140">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? t('admin.statusEnabled') : t('admin.statusDisabled') }}
-            </el-tag>
+            <span class="chip">{{ row.roleName || row.roleKey || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" :label="t('common.createdAt')" min-width="160" />
-        <el-table-column :label="t('common.actions')" width="280">
+        <el-table-column prop="phone" :label="t('auth.phone')" min-width="180" />
+        <el-table-column :label="t('common.status')" width="140">
           <template #default="{ row }">
+            <el-tag :type="statusType(row.status)" effect="light">{{ statusText(row.status) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" :label="t('common.createdAt')" min-width="180" />
+        <el-table-column :label="t('common.actions')" width="360">
+          <template #default="{ row }">
+            <el-button size="small" v-permission="'admin:users:edit'" @click="openEditDialog(row)">
+              {{ t('common.edit') }}
+            </el-button>
             <el-button
               size="small"
               type="warning"
@@ -51,7 +74,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="mt-6 flex justify-end">
+      <div class="flex justify-end border-t border-[var(--line)] px-4 py-4">
         <el-pagination
           background
           layout="prev, pager, next, sizes"
@@ -62,7 +85,36 @@
           @size-change="changeSize"
         />
       </div>
-    </el-card>
+    </article>
+
+    <el-dialog v-model="userDialogVisible" :title="userDialogTitle" width="460px">
+      <el-form label-position="top">
+        <el-form-item :label="t('auth.username')" required>
+          <el-input v-model="userForm.username" />
+        </el-form-item>
+        <el-form-item :label="t('auth.phone')" required>
+          <el-input v-model="userForm.phone" />
+        </el-form-item>
+        <el-form-item :label="t('admin.roleName')" required>
+          <el-select v-model="userForm.roleId" class="w-full">
+            <el-option v-for="role in roles" :key="role.id" :label="role.roleName" :value="role.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="t('common.status')">
+          <el-select v-model="userForm.status" class="w-full">
+            <el-option :label="t('admin.statusEnabled')" :value="1" />
+            <el-option :label="t('admin.statusDisabled')" :value="0" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="passwordLabel">
+          <el-input v-model="userForm.password" show-password type="password" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="userDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="userSaving" @click="saveUser">{{ t('common.save') }}</el-button>
+      </template>
+    </el-dialog>
 
     <el-dialog v-model="roleDialogVisible" :title="t('admin.assignRole')" width="420px">
       <el-form label-position="top">
@@ -72,21 +124,25 @@
           </el-select>
         </el-form-item>
       </el-form>
-
       <template #footer>
         <el-button @click="roleDialogVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="roleSaving" @click="saveUserRole">
-          {{ t('common.save') }}
-        </el-button>
+        <el-button type="primary" :loading="roleSaving" @click="saveUserRole">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
   </section>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { disableAdminUser, fetchAdminUsers, resetAdminUserPassword, updateAdminUserRole } from '@/api/admin/users.js'
+import {
+  createAdminUser,
+  disableAdminUser,
+  fetchAdminUsers,
+  resetAdminUserPassword,
+  updateAdminUser,
+  updateAdminUserRole,
+} from '@/api/admin/users.js'
 import { fetchAdminRoles } from '@/api/admin/roles.js'
 import { useI18n } from '@/i18n/index.js'
 
@@ -102,11 +158,31 @@ const roleForm = reactive({
   userId: null,
   roleId: null,
 })
+const userDialogVisible = ref(false)
+const userDialogMode = ref('create')
+const userSaving = ref(false)
+const userForm = reactive({
+  id: null,
+  username: '',
+  phone: '',
+  roleId: null,
+  status: 1,
+  password: '',
+})
 const { t } = useI18n()
 
 const filters = reactive({
   keyword: '',
 })
+
+const userDialogTitle = computed(() => (userDialogMode.value === 'create' ? t('admin.addUser') : t('admin.editUser')))
+const passwordLabel = computed(() => (
+  userDialogMode.value === 'create' ? t('auth.password') : t('admin.newPasswordOptional')
+))
+
+const initials = (name) => (name || '?').slice(0, 2).toUpperCase()
+const statusType = (status) => (status === 1 ? 'success' : 'danger')
+const statusText = (status) => (status === 1 ? t('admin.statusEnabled') : t('admin.statusDisabled'))
 
 const fetchUsers = async () => {
   loading.value = true
@@ -123,7 +199,7 @@ const fetchUsers = async () => {
     } else {
       ElMessage.error(res.message || t('common.empty'))
     }
-  } catch (error) {
+  } catch {
     ElMessage.error(t('common.empty'))
   } finally {
     loading.value = false
@@ -136,7 +212,7 @@ const fetchRoles = async () => {
     if (res.code === 200) {
       roles.value = res.data.content || []
     }
-  } catch (error) {
+  } catch {
     // ignore
   }
 }
@@ -158,9 +234,69 @@ const changeSize = (nextSize) => {
   fetchUsers()
 }
 
+const openCreateDialog = () => {
+  userDialogMode.value = 'create'
+  userForm.id = null
+  userForm.username = ''
+  userForm.phone = ''
+  userForm.roleId = null
+  userForm.status = 1
+  userForm.password = ''
+  userDialogVisible.value = true
+}
+
+const openEditDialog = (row) => {
+  userDialogMode.value = 'edit'
+  userForm.id = row.id
+  userForm.username = row.username
+  userForm.phone = row.phone
+  userForm.roleId = row.roleId
+  userForm.status = row.status ?? 1
+  userForm.password = ''
+  userDialogVisible.value = true
+}
+
+const saveUser = async () => {
+  if (!userForm.username || !userForm.phone || !userForm.roleId) {
+    ElMessage.warning(t('auth.completeInfo'))
+    return
+  }
+  if (userDialogMode.value === 'create' && !userForm.password) {
+    ElMessage.warning(t('auth.completeInfo'))
+    return
+  }
+
+  const payload = {
+    username: userForm.username,
+    phone: userForm.phone,
+    roleId: userForm.roleId,
+    status: userForm.status,
+    password: userForm.password || undefined,
+  }
+
+  userSaving.value = true
+  try {
+    const res = userDialogMode.value === 'create'
+      ? await createAdminUser(payload)
+      : await updateAdminUser(userForm.id, payload)
+
+    if (res.code === 200) {
+      ElMessage.success(t('common.save'))
+      userDialogVisible.value = false
+      fetchUsers()
+    } else {
+      ElMessage.error(res.message || t('common.empty'))
+    }
+  } catch {
+    ElMessage.error(t('common.empty'))
+  } finally {
+    userSaving.value = false
+  }
+}
+
 const disable = async (row) => {
   try {
-    await ElMessageBox.confirm(t('admin.disableConfirm'), 'Confirm', { type: 'warning' })
+    await ElMessageBox.confirm(t('admin.disableConfirm'), t('common.actions'), { type: 'warning' })
     const res = await disableAdminUser(row.id)
     if (res.code === 200) {
       ElMessage.success(t('admin.disable'))
@@ -177,7 +313,7 @@ const disable = async (row) => {
 
 const resetPassword = async (row) => {
   try {
-    await ElMessageBox.confirm(t('admin.resetConfirm'), 'Confirm', { type: 'warning' })
+    await ElMessageBox.confirm(t('admin.resetConfirm'), t('common.actions'), { type: 'warning' })
     const res = await resetAdminUserPassword(row.id)
     if (res.code === 200) {
       ElMessage.success(t('admin.resetPassword'))
@@ -212,11 +348,35 @@ const saveUserRole = async () => {
     } else {
       ElMessage.error(res.message || t('common.empty'))
     }
-  } catch (error) {
+  } catch {
     ElMessage.error(t('common.empty'))
   } finally {
     roleSaving.value = false
   }
+}
+
+const exportCsv = () => {
+  if (!users.value.length) {
+    ElMessage.info(t('common.empty'))
+    return
+  }
+  const header = ['id', 'username', 'phone', 'role', 'status', 'createdAt']
+  const lines = users.value.map((user) => [
+    user.id,
+    user.username,
+    user.phone,
+    user.roleName || user.roleKey,
+    user.status,
+    user.createdAt,
+  ])
+  const csv = [header.join(','), ...lines.map((line) => line.join(','))].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `users-${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  window.URL.revokeObjectURL(url)
 }
 
 onMounted(() => {
@@ -224,4 +384,3 @@ onMounted(() => {
   fetchRoles()
 })
 </script>
-

@@ -8,6 +8,8 @@ import com.thinking.backendmall.common.HtmlSanitizer;
 import com.thinking.backendmall.common.PageResult;
 import com.thinking.backendmall.dto.AdminProductRequest;
 import com.thinking.backendmall.entity.Product;
+import com.thinking.backendmall.entity.ProductImage;
+import com.thinking.backendmall.repository.ProductImageRepository;
 import com.thinking.backendmall.repository.ProductRepository;
 import com.thinking.backendmall.service.AdminProductService;
 import com.thinking.backendmall.service.CacheService;
@@ -15,12 +17,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 @Service
 public class AdminProductServiceImpl implements AdminProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ProductImageRepository productImageRepository;
 
     @Autowired
     private CacheService cacheService;
@@ -57,6 +65,7 @@ public class AdminProductServiceImpl implements AdminProductService {
         product.setDetailHtml(HtmlSanitizer.sanitize(request.getDetailHtml()));
         product.setCreatedAt(LocalDateTime.now());
         productRepository.insert(product);
+        saveProductImages(product.getId(), request.getCoverUrl(), request.getImageUrls());
         evictProductCaches();
         return product;
     }
@@ -76,6 +85,7 @@ public class AdminProductServiceImpl implements AdminProductService {
         existing.setCoverUrl(request.getCoverUrl());
         existing.setDetailHtml(HtmlSanitizer.sanitize(request.getDetailHtml()));
         productRepository.updateById(existing);
+        saveProductImages(existing.getId(), request.getCoverUrl(), request.getImageUrls());
         evictProductCaches();
         return existing;
     }
@@ -97,8 +107,37 @@ public class AdminProductServiceImpl implements AdminProductService {
         if (existing == null) {
             throw new BusinessException(404, "Product not found");
         }
+        productImageRepository.delete(new LambdaQueryWrapper<ProductImage>()
+                .eq(ProductImage::getProductId, id));
         productRepository.deleteById(id);
         evictProductCaches();
+    }
+
+    private void saveProductImages(Long productId, String coverUrl, List<String> imageUrls) {
+        productImageRepository.delete(new LambdaQueryWrapper<ProductImage>()
+                .eq(ProductImage::getProductId, productId));
+
+        LinkedHashSet<String> normalized = new LinkedHashSet<>();
+        if (coverUrl != null && !coverUrl.isBlank()) {
+            normalized.add(coverUrl.trim());
+        }
+        if (imageUrls != null) {
+            for (String imageUrl : imageUrls) {
+                if (imageUrl != null && !imageUrl.isBlank()) {
+                    normalized.add(imageUrl.trim());
+                }
+            }
+        }
+
+        List<String> finalImages = new ArrayList<>(normalized);
+        int sort = 1;
+        for (String imageUrl : finalImages) {
+            ProductImage productImage = new ProductImage();
+            productImage.setProductId(productId);
+            productImage.setUrl(imageUrl);
+            productImage.setSort(sort++);
+            productImageRepository.insert(productImage);
+        }
     }
 
     private String normalizeStatus(String status, String fallback) {
@@ -112,5 +151,7 @@ public class AdminProductServiceImpl implements AdminProductService {
         cacheService.deleteByPrefix(CacheKeys.PRODUCT_DETAIL_PREFIX);
         cacheService.deleteByPrefix(CacheKeys.PRODUCT_SEARCH_PREFIX);
         cacheService.delete(CacheKeys.HOME_RECOMMEND);
+        cacheService.delete(CacheKeys.HOME_HOT);
+        cacheService.delete(CacheKeys.HOME_PROMO);
     }
 }

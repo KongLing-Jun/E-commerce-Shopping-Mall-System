@@ -1,7 +1,6 @@
 package com.thinking.backendmall.vo;
 
 import com.thinking.backendmall.entity.Address;
-
 import java.math.BigDecimal;
 import java.util.List;
 

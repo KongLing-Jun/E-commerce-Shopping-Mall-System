@@ -12,4 +12,8 @@ public interface HomeService {
     List<Category> getCategories();
 
     List<Product> getRecommendProducts();
+
+    List<Product> getHotProducts();
+
+    List<Product> getPromoProducts();
 }

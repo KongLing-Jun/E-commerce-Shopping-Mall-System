@@ -102,6 +102,24 @@ create index idx_admin_id
 create index idx_created_at
     on operation_log (created_at);
 
+create table merchant_notice
+(
+    id          bigint auto_increment
+        primary key,
+    notice_type varchar(64)  not null,
+    order_no    varchar(64)  not null,
+    content     varchar(512) not null,
+    status      int          not null default 0,
+    created_at  datetime     null
+)
+    charset = utf8mb4;
+
+create index idx_merchant_notice_created_at
+    on merchant_notice (created_at);
+
+create index idx_merchant_notice_status
+    on merchant_notice (status);
+
 create table `order`
 (
     id               bigint auto_increment

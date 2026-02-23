@@ -11,3 +11,7 @@ export const login = (data) => {
 export const logout = () => {
     return request.post('/api/auth/logout')
 }
+
+export const me = () => {
+    return request.get('/api/auth/me')
+}

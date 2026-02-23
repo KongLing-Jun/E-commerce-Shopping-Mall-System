@@ -1,7 +1,7 @@
 ﻿import { computed, ref } from 'vue'
 
 const storedLocale = typeof window === 'undefined' ? null : localStorage.getItem('locale')
-const locale = ref(storedLocale || 'en')
+const locale = ref(storedLocale || 'zh')
 
 const messages = {
   en: {
@@ -87,6 +87,11 @@ const messages = {
       favorited: 'Added to favorites',
       back: 'Back',
       description: 'Description',
+      notFound: 'Product not found',
+      offShelf: 'Product is off shelf',
+      loginRequired: 'Please sign in to view product detail',
+      loadFail: 'Failed to load product detail',
+      backToList: 'Back to products',
     },
     cart: {
       title: 'Shopping cart',
@@ -156,6 +161,7 @@ const messages = {
     auth: {
       loginTitle: 'Sign in',
       loginSubtitle: 'Welcome back. Please enter your credentials.',
+      adminPortal: 'Admin Portal',
       registerTitle: 'Create account',
       registerSubtitle: 'Start your shopping journey.',
       username: 'Username',
@@ -174,6 +180,11 @@ const messages = {
       registerSuccess: 'Registration successful',
       registerFail: 'Registration failed',
       completeInfo: 'Please complete all fields',
+      rememberMe: 'Remember me',
+      forgotPassword: 'Forgot password?',
+      contactAdminReset: 'Please contact administrator to reset password.',
+      secureBy: 'Secure by E-Com Platform - 2026',
+      backToStore: 'Back to Store',
     },
     profile: {
       title: 'User center',
@@ -211,6 +222,11 @@ const messages = {
     admin: {
       usersTitle: 'User Management',
       usersSubtitle: 'Search, disable, or reset passwords.',
+      addUser: 'Add New User',
+      editUser: 'Edit User',
+      userSearchPlaceholder: 'Search by username or phone',
+      exportCsv: 'Export CSV',
+      newPasswordOptional: 'New Password (optional)',
       rolesTitle: 'Role Management',
       rolesSubtitle: 'Create roles and assign menus or permissions.',
       bannerTitle: 'Banner Management',
@@ -351,6 +367,11 @@ const messages = {
       favorited: '已加入收藏',
       back: '返回',
       description: '商品描述',
+      notFound: '商品不存在',
+      offShelf: '商品已下架',
+      loginRequired: '请先登录后查看商品详情',
+      loadFail: '加载商品详情失败',
+      backToList: '返回商品列表',
     },
     cart: {
       title: '购物车',
@@ -420,6 +441,7 @@ const messages = {
     auth: {
       loginTitle: '账号登录',
       loginSubtitle: '欢迎回来，请输入账号信息。',
+      adminPortal: '管理后台登录',
       registerTitle: '注册新账号',
       registerSubtitle: '开始你的购物之旅。',
       username: '用户名',
@@ -438,6 +460,11 @@ const messages = {
       registerSuccess: '注册成功',
       registerFail: '注册失败',
       completeInfo: '请完整填写注册信息',
+      rememberMe: '记住我',
+      forgotPassword: '忘记密码？',
+      contactAdminReset: '请联系管理员重置密码。',
+      secureBy: '由 E-Com Platform 安全保护 - 2026',
+      backToStore: '返回商城',
     },
     profile: {
       title: '用户中心',
@@ -475,6 +502,11 @@ const messages = {
     admin: {
       usersTitle: '用户管理',
       usersSubtitle: '搜索、禁用和重置密码。',
+      addUser: '新增用户',
+      editUser: '编辑用户',
+      userSearchPlaceholder: '按用户名或手机号搜索',
+      exportCsv: '导出 CSV',
+      newPasswordOptional: '新密码（可不填）',
       rolesTitle: '角色管理',
       rolesSubtitle: '创建角色并分配菜单与权限。',
       bannerTitle: '轮播图管理',

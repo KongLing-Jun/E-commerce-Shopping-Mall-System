@@ -13,8 +13,10 @@ const route = useRoute()
 const { isLoggedIn, isAdmin, refreshAuth } = useAuth()
 const { locale, setLocale, t, availableLocales } = useI18n()
 const { theme, applyTheme, initTheme } = useTheme()
+const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 const menuTree = ref([])
+const storeSearch = ref('')
 
 const flattenMenus = (menus, result = []) => {
   if (!Array.isArray(menus)) {
@@ -31,7 +33,7 @@ const flattenMenus = (menus, result = []) => {
 
 const adminMenuItems = computed(() => {
   const flat = flattenMenus(menuTree.value, [])
-  return flat.filter((menu) => menu.path && menu.path.startsWith('/admin'))
+  return flat.filter((menu) => menu.path && menu.path.startsWith('/admin') && menu.type === 'MENU')
 })
 
 const menuLabelMap = {
@@ -50,19 +52,22 @@ const resolveMenuLabel = (menu) => {
   return key ? t(key) : menu.name
 }
 
-const adminDefaultPath = computed(() => adminMenuItems.value[0]?.path || '/admin')
+const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
+const isAdminArea = computed(() => route.path.startsWith('/admin'))
 
-const activePath = computed(() => {
-  if (route.path.startsWith('/product')) {
-    return '/products'
+const storeNavItems = computed(() => [
+  { path: '/', label: t('nav.home') },
+  { path: '/products', label: t('nav.products') },
+  { path: '/orders', label: t('nav.orders') },
+  { path: '/cart', label: t('nav.cart') },
+])
+
+const storeNavItemsForRoute = computed(() => {
+  // 首页只保留浏览入口，隐藏可直接触发购买流程的导航。
+  if (route.path === '/') {
+    return storeNavItems.value.filter((item) => item.path === '/' || item.path === '/products')
   }
-  if (route.path.startsWith('/orders/confirm')) {
-    return '/orders'
-  }
-  if (route.path.startsWith('/admin')) {
-    return adminDefaultPath.value
-  }
-  return route.path
+  return storeNavItems.value
 })
 
 const loadMenus = async () => {
@@ -70,15 +75,33 @@ const loadMenus = async () => {
     menuTree.value = []
     return
   }
+  const cachedMenus = localStorage.getItem('menus')
+  const cachedPerms = localStorage.getItem('perms')
+  if (cachedMenus) {
+    try {
+      menuTree.value = JSON.parse(cachedMenus) || []
+    } catch {
+      menuTree.value = []
+    }
+  }
+  if (cachedPerms) {
+    try {
+      JSON.parse(cachedPerms)
+    } catch {
+      localStorage.removeItem('perms')
+    }
+  }
   try {
+    // menus 用于动态侧边栏，perms 用于按钮级权限控制。
     const [menuRes, permRes] = await Promise.all([fetchMyMenus(), fetchMyPerms()])
     if (menuRes.code === 200) {
       menuTree.value = menuRes.data || []
+      localStorage.setItem('menus', JSON.stringify(menuRes.data || []))
     }
     if (permRes.code === 200) {
       localStorage.setItem('perms', JSON.stringify(permRes.data || []))
     }
-  } catch (error) {
+  } catch {
     menuTree.value = []
   }
 }
@@ -92,6 +115,7 @@ watch(isLoggedIn, (value) => {
 })
 
 onMounted(() => {
+  // 首次加载时恢复主题与语言偏好。
   initTheme()
   setLocale(locale.value)
   if (isLoggedIn.value) {
@@ -99,16 +123,27 @@ onMounted(() => {
   }
 })
 
+const handleStoreSearch = () => {
+  // 统一跳转到商品列表页并携带关键字查询参数。
+  if (!storeSearch.value) {
+    router.push('/products')
+    return
+  }
+  router.push({ path: '/products', query: { keyword: storeSearch.value } })
+}
+
 const logout = async () => {
   try {
     await logoutApi()
-  } catch (error) {
+  } catch {
     // Ignore logout API failures and clear local state anyway.
   }
   localStorage.removeItem('token')
   localStorage.removeItem('userId')
   localStorage.removeItem('roleKey')
+  localStorage.removeItem('menus')
   localStorage.removeItem('perms')
+  // 通知权限守卫和状态管理：当前登录态已失效。
   refreshAuth()
   window.dispatchEvent(new Event('auth-changed'))
   ElMessage.success(t('auth.logoutSuccess'))
@@ -117,66 +152,36 @@ const logout = async () => {
 </script>
 
 <template>
-  <div class="relative min-h-screen">
-    <div
-      class="pointer-events-none fixed -top-24 -right-10 h-80 w-80 rounded-full bg-[radial-gradient(circle,#ffd8a8,transparent_60%)] opacity-70 blur-3xl"
-    ></div>
-    <div
-      class="pointer-events-none fixed bottom-0 -left-16 h-72 w-72 rounded-full bg-[radial-gradient(circle,#9ad0ec,transparent_60%)] opacity-70 blur-3xl"
-    ></div>
+  <div class="min-h-screen text-[var(--ink)]">
+    <router-view v-if="isAuthPage" />
 
-    <el-container class="min-h-screen">
-      <el-header
-        height="72px"
-        class="sticky top-0 z-20 border-b border-white/60 bg-[var(--surface)] backdrop-blur"
-      >
-        <div class="mx-auto flex h-full w-full max-w-6xl items-center justify-between px-6">
-          <div class="flex items-center gap-6">
-            <router-link to="/" class="flex items-center gap-3">
-              <div
-                class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent)] text-lg font-semibold text-white shadow-soft"
-              >
-                M
-              </div>
-              <div>
-                <div class="text-xl font-semibold">Mall Studio</div>
-                <div class="text-[11px] uppercase tracking-[0.35em] text-[var(--muted)]">
-                  shopping lab
-                </div>
-              </div>
-            </router-link>
-            <el-menu
-              :default-active="activePath"
-              mode="horizontal"
-              router
-              class="border-0 bg-transparent"
+    <template v-else-if="isAdminArea && isAdmin">
+      <div class="grid min-h-screen lg:grid-cols-[250px_1fr]">
+        <aside class="hidden border-r border-[var(--line)] bg-[var(--surface)] px-5 py-6 lg:flex lg:flex-col">
+          <router-link to="/" class="flex items-center gap-3 rounded-xl px-2 py-1">
+            <div class="grid h-11 w-11 place-content-center rounded-xl bg-[var(--highlight)] text-xl font-bold text-[var(--accent)]">
+              A
+            </div>
+            <div>
+              <div class="text-xl font-extrabold">{{ dual('后台面板', 'Admin Panel') }}</div>
+              <div class="text-xs tracking-wide text-[var(--muted)]">{{ dual('管理控制台', 'Management Console') }}</div>
+            </div>
+          </router-link>
+
+          <div class="mt-8 space-y-2">
+            <router-link
+              v-for="menu in adminMenuItems"
+              :key="menu.path"
+              :to="menu.path"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === menu.path ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
             >
-              <el-menu-item index="/" :disabled="!isLoggedIn">{{ t('nav.home') }}</el-menu-item>
-              <el-menu-item index="/products" :disabled="!isLoggedIn">{{ t('nav.products') }}</el-menu-item>
-              <el-menu-item index="/cart" :disabled="!isLoggedIn">{{ t('nav.cart') }}</el-menu-item>
-              <el-menu-item index="/orders" :disabled="!isLoggedIn">{{ t('nav.orders') }}</el-menu-item>
-              <el-menu-item index="/profile" :disabled="!isLoggedIn">{{ t('nav.profile') }}</el-menu-item>
-              <el-menu-item index="/addresses" :disabled="!isLoggedIn">{{ t('nav.addresses') }}</el-menu-item>
-              <el-sub-menu v-if="isAdmin && adminMenuItems.length" index="/admin">
-                <template #title>{{ t('nav.admin') }}</template>
-                <el-menu-item
-                  v-for="menu in adminMenuItems"
-                  :key="menu.path"
-                  :index="menu.path"
-                >
-                  {{ resolveMenuLabel(menu) }}
-                </el-menu-item>
-              </el-sub-menu>
-            </el-menu>
+              {{ resolveMenuLabel(menu) }}
+            </router-link>
           </div>
 
-          <div class="flex items-center gap-3">
-            <el-select
-              v-model="locale"
-              size="small"
-              class="w-24"
-              @change="setLocale"
-            >
+          <div class="mt-auto space-y-3 border-t border-[var(--line)] pt-6">
+            <el-select v-model="locale" size="small" class="w-full" @change="setLocale">
               <el-option
                 v-for="option in availableLocales"
                 :key="option.value"
@@ -186,32 +191,113 @@ const logout = async () => {
             </el-select>
             <el-switch
               v-model="theme"
+              inline-prompt
               active-value="dark"
               inactive-value="light"
-              :active-text="t('theme.dark')"
-              :inactive-text="t('theme.light')"
+              active-text="D"
+              inactive-text="L"
               @change="applyTheme"
             />
-            <template v-if="!isLoggedIn">
-              <el-button size="small" text @click="router.push('/login')">{{ t('nav.signIn') }}</el-button>
-              <el-button size="small" type="primary" @click="router.push('/register')">
-                {{ t('nav.createAccount') }}
-              </el-button>
-            </template>
-            <template v-else>
-              <el-tag type="success" round>{{ t('nav.signedIn') }}</el-tag>
-              <el-button size="small" @click="logout">{{ t('nav.signOut') }}</el-button>
-            </template>
+            <el-button class="w-full" @click="logout">{{ t('nav.signOut') }}</el-button>
           </div>
-        </div>
-      </el-header>
+        </aside>
 
-      <el-main class="px-6 pb-16 pt-8">
-        <div class="mx-auto w-full max-w-6xl">
-          <router-view />
+        <div class="min-h-screen">
+          <header class="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--surface)]/95 px-5 py-4 backdrop-blur">
+            <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
+              <div>
+                <h1 class="text-lg font-bold">{{ t('nav.admin') }}</h1>
+                <p class="text-xs text-[var(--muted)]">{{ dual('RBAC与运营操作', 'RBAC + Operations') }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <el-select v-model="locale" size="small" class="w-24 lg:hidden" @change="setLocale">
+                  <el-option
+                    v-for="option in availableLocales"
+                    :key="option.value"
+                    :label="option.label"
+                    :value="option.value"
+                  />
+                </el-select>
+                <el-button @click="router.push('/')">{{ dual('商城', 'Store') }}</el-button>
+              </div>
+            </div>
+          </header>
+
+          <main class="mx-auto w-full max-w-7xl px-5 py-8">
+            <router-view />
+          </main>
         </div>
-      </el-main>
-    </el-container>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="min-h-screen">
+        <header class="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--surface)]/95 backdrop-blur">
+          <div class="mx-auto flex h-20 w-full max-w-7xl items-center justify-between gap-5 px-4">
+            <div class="flex items-center gap-8">
+              <router-link to="/" class="flex items-center gap-3">
+                <div class="grid h-10 w-10 place-content-center rounded-xl bg-[var(--highlight)] font-bold text-[var(--accent)]">
+                  E
+                </div>
+                <div class="text-2xl font-extrabold">E-Shop</div>
+              </router-link>
+              <nav class="hidden items-center gap-1 md:flex">
+                <router-link
+                  v-for="item in storeNavItemsForRoute"
+                  :key="item.path"
+                  :to="item.path"
+                  class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+                  :class="route.path === item.path ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'text-[var(--muted)] hover:bg-[var(--surface-soft)]'"
+                >
+                  {{ item.label }}
+                </router-link>
+              </nav>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <el-input
+                v-model="storeSearch"
+                  :placeholder="t('productList.searchPlaceholder')"
+                  class="hidden w-60 lg:block"
+                  @keyup.enter="handleStoreSearch"
+                />
+              <el-button @click="handleStoreSearch">{{ t('common.search') }}</el-button>
+              <el-select v-model="locale" size="small" class="w-24" @change="setLocale">
+                <el-option
+                  v-for="option in availableLocales"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+              <el-switch
+                v-model="theme"
+                inline-prompt
+                active-value="dark"
+                inactive-value="light"
+                active-text="D"
+                inactive-text="L"
+                @change="applyTheme"
+              />
+              <template v-if="isLoggedIn">
+                <el-button @click="router.push('/profile')">{{ t('nav.profile') }}</el-button>
+                <el-button v-if="isAdmin" @click="router.push('/admin')">{{ t('nav.admin') }}</el-button>
+                <el-button type="primary" @click="logout">{{ t('nav.signOut') }}</el-button>
+              </template>
+              <template v-else>
+                <el-button @click="router.push('/login')">{{ t('nav.signIn') }}</el-button>
+                <el-button type="primary" @click="router.push('/register')">{{ t('nav.createAccount') }}</el-button>
+              </template>
+            </div>
+          </div>
+        </header>
+
+        <main class="mx-auto w-full max-w-7xl px-4 py-8">
+          <router-view />
+        </main>
+      </div>
+    </template>
   </div>
 </template>
+
 

@@ -3,6 +3,7 @@ package com.thinking.backendmall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -21,6 +22,7 @@ public class Product {
     private String detailHtml;
 
     private LocalDateTime createdAt;
+
     public Long getId() {
         return id;
     }

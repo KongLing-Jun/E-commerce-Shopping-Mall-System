@@ -2,6 +2,7 @@ package com.thinking.backendmall.controller.admin;
 
 import com.thinking.backendmall.common.PageResult;
 import com.thinking.backendmall.common.Result;
+import com.thinking.backendmall.dto.AdminShipOrderRequest;
 import com.thinking.backendmall.service.AdminOrderService;
 import com.thinking.backendmall.service.OperationLogService;
 import com.thinking.backendmall.vo.AdminOrderView;
@@ -34,9 +35,13 @@ public class AdminOrderController {
 
     @PostMapping("/{orderNo}/ship")
     @PreAuthorize("@permissionService.hasPerm('admin:orders:ship')")
-    public Result<Void> shipOrder(@PathVariable String orderNo) {
-        adminOrderService.shipOrder(orderNo);
-        operationLogService.record("ORDER_SHIP", "order:" + orderNo, "ship");
+    public Result<Void> shipOrder(@PathVariable String orderNo,
+                                  @RequestBody(required = false) AdminShipOrderRequest request) {
+        String expressNo = request == null ? null : request.getExpressNo();
+        String expressCompany = request == null ? null : request.getExpressCompany();
+        adminOrderService.shipOrder(orderNo, expressNo, expressCompany);
+        operationLogService.record("ORDER_SHIP", "order:" + orderNo,
+                "ship expressNo=" + expressNo + ",expressCompany=" + expressCompany);
         return Result.success();
     }
 
@@ -47,6 +52,7 @@ public class AdminOrderController {
                              @RequestParam(required = false) Integer status,
                              HttpServletResponse response) throws IOException {
         byte[] data = adminOrderService.exportOrders(orderNo, userId, status);
+        operationLogService.record("ORDER_EXPORT", "order:export", "orderNo=" + orderNo + ",userId=" + userId + ",status=" + status);
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=orders.xlsx");
         response.getOutputStream().write(data);

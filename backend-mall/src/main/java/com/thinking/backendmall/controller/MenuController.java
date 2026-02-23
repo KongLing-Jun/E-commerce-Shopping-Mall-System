@@ -7,6 +7,7 @@ import com.thinking.backendmall.config.security.AuthContext;
 import com.thinking.backendmall.service.MenuService;
 import com.thinking.backendmall.vo.MenuTreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,11 +22,13 @@ public class MenuController {
     private MenuService menuService;
 
     @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
     public Result<List<MenuTreeNode>> listMyMenus() {
         return Result.success(menuService.listMyMenus(requireRoleKey()));
     }
 
     @GetMapping("/perms")
+    @PreAuthorize("isAuthenticated()")
     public Result<List<String>> listMyPerms() {
         return Result.success(menuService.listMyPerms(requireRoleKey()));
     }

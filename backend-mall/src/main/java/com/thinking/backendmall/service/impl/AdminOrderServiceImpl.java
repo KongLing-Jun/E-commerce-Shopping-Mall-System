@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.thinking.backendmall.common.BusinessException;
 import com.thinking.backendmall.common.PageResult;
+import com.thinking.backendmall.entity.OrderDelivery;
 import com.thinking.backendmall.entity.Order;
 import com.thinking.backendmall.entity.OrderItem;
 import com.thinking.backendmall.entity.User;
+import com.thinking.backendmall.repository.OrderDeliveryRepository;
 import com.thinking.backendmall.repository.OrderItemRepository;
 import com.thinking.backendmall.repository.OrderRepository;
 import com.thinking.backendmall.repository.UserRepository;
@@ -39,6 +41,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private OrderDeliveryRepository orderDeliveryRepository;
+
     @Override
     public PageResult<AdminOrderView> listOrders(String orderNo, Long userId, Integer status, int page, int size) {
         Page<Order> pageResult = new Page<>(page + 1L, size);
@@ -58,6 +63,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         List<Order> orders = pageResult.getRecords();
         Map<Long, String> userMap = loadUsers(orders);
         Map<Long, List<OrderItemView>> itemMap = loadItems(orders);
+        Map<Long, OrderDelivery> deliveryMap = loadDelivery(orders);
 
         List<AdminOrderView> views = new ArrayList<>();
         for (Order order : orders) {
@@ -72,6 +78,11 @@ public class AdminOrderServiceImpl implements AdminOrderService {
             view.setPaidAt(order.getPaidAt());
             view.setShippedAt(order.getShippedAt());
             view.setFinishedAt(order.getFinishedAt());
+            OrderDelivery delivery = deliveryMap.get(order.getId());
+            if (delivery != null) {
+                view.setExpressNo(delivery.getExpressNo());
+                view.setExpressCompany(delivery.getExpressCompany());
+            }
             view.setItems(itemMap.getOrDefault(order.getId(), new ArrayList<>()));
             views.add(view);
         }
@@ -81,7 +92,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     }
 
     @Override
-    public void shipOrder(String orderNo) {
+    public void shipOrder(String orderNo, String expressNo, String expressCompany) {
         Order order = orderRepository.selectOne(new LambdaQueryWrapper<Order>()
                 .eq(Order::getOrderNo, orderNo));
         if (order == null) {
@@ -93,6 +104,19 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         order.setStatus(2);
         order.setShippedAt(LocalDateTime.now());
         orderRepository.updateById(order);
+
+        OrderDelivery delivery = orderDeliveryRepository.selectById(order.getId());
+        if (delivery == null) {
+            delivery = new OrderDelivery();
+            delivery.setOrderId(order.getId());
+            delivery.setExpressNo(expressNo);
+            delivery.setExpressCompany(expressCompany);
+            orderDeliveryRepository.insert(delivery);
+        } else {
+            delivery.setExpressNo(expressNo);
+            delivery.setExpressCompany(expressCompany);
+            orderDeliveryRepository.updateById(delivery);
+        }
     }
 
     @Override
@@ -111,6 +135,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         List<Order> orders = orderRepository.selectList(wrapper);
         Map<Long, String> userMap = loadUsers(orders);
         Map<Long, List<OrderItemView>> itemMap = loadItems(orders);
+        Map<Long, OrderDelivery> deliveryMap = loadDelivery(orders);
 
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -128,17 +153,20 @@ public class AdminOrderServiceImpl implements AdminOrderService {
             header.createCell(8).setCellValue("Product Name");
             header.createCell(9).setCellValue("Quantity");
             header.createCell(10).setCellValue("Price");
+            header.createCell(11).setCellValue("Express No");
+            header.createCell(12).setCellValue("Express Company");
 
             for (Order order : orders) {
+                OrderDelivery delivery = deliveryMap.get(order.getId());
                 List<OrderItemView> items = itemMap.getOrDefault(order.getId(), new ArrayList<>());
                 if (items.isEmpty()) {
                     Row row = sheet.createRow(rowIndex++);
-                    fillOrderRow(row, order, userMap.get(order.getUserId()), null);
+                    fillOrderRow(row, order, userMap.get(order.getUserId()), null, delivery);
                     continue;
                 }
                 for (OrderItemView item : items) {
                     Row row = sheet.createRow(rowIndex++);
-                    fillOrderRow(row, order, userMap.get(order.getUserId()), item);
+                    fillOrderRow(row, order, userMap.get(order.getUserId()), item, delivery);
                 }
             }
 
@@ -187,7 +215,24 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         return itemMap;
     }
 
-    private void fillOrderRow(Row row, Order order, String username, OrderItemView item) {
+    private Map<Long, OrderDelivery> loadDelivery(List<Order> orders) {
+        Map<Long, OrderDelivery> deliveryMap = new HashMap<>();
+        if (orders.isEmpty()) {
+            return deliveryMap;
+        }
+        List<Long> orderIds = new ArrayList<>();
+        for (Order order : orders) {
+            orderIds.add(order.getId());
+        }
+        List<OrderDelivery> deliveries = orderDeliveryRepository.selectList(new LambdaQueryWrapper<OrderDelivery>()
+                .in(OrderDelivery::getOrderId, orderIds));
+        for (OrderDelivery delivery : deliveries) {
+            deliveryMap.put(delivery.getOrderId(), delivery);
+        }
+        return deliveryMap;
+    }
+
+    private void fillOrderRow(Row row, Order order, String username, OrderItemView item, OrderDelivery delivery) {
         row.createCell(0).setCellValue(order.getOrderNo());
         row.createCell(1).setCellValue(order.getUserId() == null ? "" : String.valueOf(order.getUserId()));
         row.createCell(2).setCellValue(username == null ? "" : username);
@@ -206,5 +251,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
             row.createCell(9).setCellValue(item.getQuantity() == null ? "" : String.valueOf(item.getQuantity()));
             row.createCell(10).setCellValue(item.getPrice() == null ? "" : item.getPrice().toString());
         }
+        row.createCell(11).setCellValue(delivery == null || delivery.getExpressNo() == null ? "" : delivery.getExpressNo());
+        row.createCell(12).setCellValue(delivery == null || delivery.getExpressCompany() == null ? "" : delivery.getExpressCompany());
     }
 }

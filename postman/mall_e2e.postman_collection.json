@@ -1,0 +1,452 @@
+{
+  "info": {
+    "name": "Mall E2E Smoke",
+    "description": "?????????->??->??->??->????->??????->????",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('health status 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 User Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{userUsername}}\",\"password\":\"{{userPassword}}\"}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('user login 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "pm.environment.set('userToken', json.data.token);",
+              "pm.environment.set('userId', json.data.userId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Home Recommend",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/home/recommend"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('recommend 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "const products = (json.data && (json.data.products || json.data.recommendProducts)) || [];",
+              "pm.expect(products.length, 'recommend products should not be empty').to.be.greaterThan(0);",
+              "pm.environment.set('productId', products[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Product Detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/products/{{productId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('product detail 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "pm.expect(Array.isArray(json.data.images)).to.eql(true);",
+              "pm.expect(typeof json.data.specs).to.eql('object');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Add Cart",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"productId\":{{productId}},\"quantity\":1}"
+        },
+        "url": "{{baseUrl}}/api/cart/items"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('add cart 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Create Address",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"receiver\":\"??\",\"phone\":\"13800001111\",\"province\":\"???\",\"city\":\"???\",\"area\":\"???\",\"detail\":\"???1?\",\"isDefault\":1}"
+        },
+        "url": "{{baseUrl}}/api/addresses"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('create address 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Pick Address",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/addresses"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('address list 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "pm.expect(Array.isArray(json.data)).to.eql(true);",
+              "pm.expect(json.data.length, 'address list should not be empty').to.be.greaterThan(0);",
+              "const chosen = json.data.find(x => x.isDefault === 1) || json.data[0];",
+              "pm.environment.set('addressId', chosen.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Pre Order",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders/pre"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('pre order 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "pm.expect(json.data.totalAmount).to.exist;",
+              "pm.environment.set('orderPayAmount', json.data.totalAmount);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Create Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"addressId\":{{addressId}}}"
+        },
+        "url": "{{baseUrl}}/api/orders"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('create order 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "pm.expect(json.data.orderNo).to.be.a('string');",
+              "pm.environment.set('orderNo', json.data.orderNo);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Pay Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"payAmount\":{{orderPayAmount}}}"
+        },
+        "url": "{{baseUrl}}/api/orders/{{orderNo}}/pay"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('pay order 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Admin Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{adminUsername}}\",\"password\":\"{{adminPassword}}\"}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('admin login 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "pm.expect(json.data.roleKey).to.eql('ADMIN');",
+              "pm.environment.set('adminToken', json.data.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Admin Notices Contains Order",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/notices?page=0&size=20"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('admin notices 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "const notices = (json.data && json.data.content) || [];",
+              "const orderNo = pm.environment.get('orderNo');",
+              "pm.test('notice contains current order', function () {",
+              "  pm.expect(notices.some(x => x.orderNo === orderNo)).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Admin Ship Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expressNo\":\"SF123456789CN\",\"expressCompany\":\"????\"}"
+        },
+        "url": "{{baseUrl}}/api/admin/orders/{{orderNo}}/ship"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('ship order 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 User Confirm Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders/{{orderNo}}/confirm"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('confirm order 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 User Order Final Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders?page=0&size=20"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('order list 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.expect(json.code).to.eql(200);",
+              "const records = (json.data && json.data.content) || [];",
+              "const orderNo = pm.environment.get('orderNo');",
+              "const current = records.find(x => x.orderNo === orderNo);",
+              "pm.expect(current, 'current order should exist').to.exist;",
+              "pm.expect(current.status, 'status should be completed').to.eql(3);",
+              "pm.expect(current.expressNo, 'expressNo should be returned').to.eql('SF123456789CN');"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

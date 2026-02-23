@@ -1,81 +1,106 @@
 ﻿<template>
-  <div class="space-y-6 animate-fade-up">
-    <el-card class="border-0 bg-[var(--surface-strong)] shadow-soft">
-      <template #header>
-        <div>
-          <h2 class="text-2xl font-semibold">{{ t('orderConfirm.title') }}</h2>
-          <p class="muted-text">{{ t('orderConfirm.subtitle') }}</p>
+  <div class="grid gap-8 xl:grid-cols-[1fr_360px]">
+    <section class="space-y-6">
+      <header>
+        <div class="flex items-center justify-between">
+          <h1 class="text-4xl font-extrabold">{{ dual('第 2 步（共 3 步）：支付', 'Step 2 of 3: Payment') }}</h1>
+          <span class="text-lg text-[var(--muted)]">{{ dual('下一步：复核', 'Next: Review') }}</span>
         </div>
-      </template>
-
-      <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div class="space-y-4">
-          <h3 class="text-lg font-semibold">{{ t('orderConfirm.items') }}</h3>
-          <el-table v-if="orderItems.length" :data="orderItems" style="width: 100%">
-            <el-table-column :label="t('nav.products')">
-              <template #default="{ row }">
-                <div class="flex items-center gap-3">
-                  <el-image :src="row.image" class="h-14 w-14 rounded-xl" fit="cover" />
-                  <div>
-                    <div class="font-medium">{{ row.name }}</div>
-                    <div class="text-sm text-[var(--muted)]">$ {{ formatPrice(row.price) }}</div>
-                  </div>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column :label="t('common.qty')" width="120">
-              <template #default="{ row }">
-                x {{ row.quantity }}
-              </template>
-            </el-table-column>
-            <el-table-column :label="t('common.amount')" width="140">
-              <template #default="{ row }">
-                $ {{ formatPrice(row.price * row.quantity) }}
-              </template>
-            </el-table-column>
-          </el-table>
-          <el-empty v-else :description="t('orderConfirm.noItems')" />
+        <div class="mt-5 grid grid-cols-3 gap-2 text-sm font-semibold text-[var(--muted)]">
+          <div class="rounded-full bg-[var(--accent)] px-4 py-2 text-center text-white">{{ dual('配送', 'Shipping') }}</div>
+          <div class="rounded-full bg-[var(--highlight)] px-4 py-2 text-center text-[var(--accent)]">{{ dual('支付', 'Payment') }}</div>
+          <div class="rounded-full bg-[var(--surface-soft)] px-4 py-2 text-center">{{ dual('复核', 'Review') }}</div>
         </div>
+      </header>
 
-        <div class="space-y-4">
-          <h3 class="text-lg font-semibold">{{ t('orderConfirm.address') }}</h3>
-          <el-radio-group v-model="selectedAddressId" class="w-full">
-            <el-radio
-              v-for="address in addresses"
-              :key="address.id"
-              :value="address.id"
-              class="mb-2 w-full"
-            >
-              {{ address.receiver }} {{ address.phone }} -
+      <article class="rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+        <div class="flex items-center justify-between border-b border-[var(--line)] px-6 py-4">
+          <h2 class="text-2xl font-extrabold">{{ dual('收货地址', 'Shipping Address') }}</h2>
+          <el-button text type="primary" @click="router.push('/addresses')">{{ t('common.edit') }}</el-button>
+        </div>
+        <div class="grid gap-4 p-6 md:grid-cols-2">
+          <button
+            v-for="address in addresses"
+            :key="address.id"
+            type="button"
+            class="rounded-xl border p-4 text-left"
+            :class="selectedAddressId === address.id ? 'border-[var(--accent)] bg-[var(--highlight)]' : 'border-[var(--line)]'"
+            @click="selectedAddressId = address.id"
+          >
+            <div class="text-lg font-bold">{{ address.receiver }} - {{ address.phone }}</div>
+            <p class="mt-2 text-sm text-[var(--muted)]">
               {{ address.province }} {{ address.city }} {{ address.area }} {{ address.detail }}
-              <el-tag v-if="address.isDefault === 1" type="success" size="small" class="ml-2">
-                {{ t('address.default') }}
-              </el-tag>
-            </el-radio>
-          </el-radio-group>
-          <el-button type="primary" plain @click="router.push('/addresses')">
-            {{ t('orderConfirm.manageAddress') }}
-          </el-button>
+            </p>
+            <span v-if="address.isDefault === 1" class="chip mt-3">{{ t('address.default') }}</span>
+          </button>
         </div>
-      </div>
-    </el-card>
+      </article>
 
-    <el-card class="border-0 bg-[var(--surface-strong)] shadow-soft">
-      <div class="flex flex-col items-end gap-3">
-        <div class="text-lg">
-          {{ t('orderConfirm.total') }}
-          <span class="text-2xl font-semibold text-[var(--accent)]">$ {{ formatPrice(totalAmount) }}</span>
+      <article class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
+        <h2 class="text-3xl font-extrabold">{{ dual('支付方式', 'Payment Method') }}</h2>
+        <p class="muted-text mt-2">{{ dual('所有交易均已加密并安全保护。', 'All transactions are secure and encrypted.') }}</p>
+
+        <el-radio-group v-model="paymentMethod" class="mt-5 grid gap-3">
+          <el-radio value="card" border size="large">{{ dual('信用卡 / 借记卡', 'Credit or Debit Card') }}</el-radio>
+          <el-radio value="wallet" border size="large">{{ dual('数字钱包', 'Digital Wallet') }}</el-radio>
+        </el-radio-group>
+
+        <div class="mt-5 grid gap-4">
+          <el-input v-model="paymentForm.cardNo" :placeholder="dual('卡号', 'Card Number')" />
+          <div class="grid grid-cols-2 gap-4">
+            <el-input v-model="paymentForm.expire" :placeholder="dual('月 / 年', 'MM / YY')" />
+            <el-input v-model="paymentForm.cvc" placeholder="CVC" />
+          </div>
+          <el-input v-model="paymentForm.holder" :placeholder="dual('持卡人姓名', 'Name on Card')" />
+          <el-checkbox v-model="paymentForm.saveCard">{{ dual('保存该卡用于下次支付', 'Save this card for future purchases') }}</el-checkbox>
         </div>
-        <el-button type="primary" size="large" :loading="loading" @click="submitOrder">
-          {{ t('orderConfirm.submit') }}
-        </el-button>
+      </article>
+
+      <div class="flex items-center justify-between">
+        <el-button @click="router.push('/cart')">{{ dual('返回购物车', 'Back to Cart') }}</el-button>
+        <el-button type="primary" size="large" :loading="loading" @click="submitOrder">{{ dual('提交并复核', 'Review Order') }}</el-button>
       </div>
-    </el-card>
+    </section>
+
+    <aside class="h-fit rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+      <div class="border-b border-[var(--line)] px-6 py-5">
+        <h3 class="text-3xl font-extrabold">{{ dual('订单摘要', 'Order Summary') }}</h3>
+      </div>
+      <div class="space-y-4 px-6 py-5">
+        <div v-for="item in orderItems" :key="item.cartItemId" class="flex items-center gap-3">
+          <img :src="item.image" :alt="item.name" class="h-16 w-16 rounded-lg object-cover" />
+          <div class="min-w-0 flex-1">
+            <p class="line-clamp-1 text-base font-bold">{{ item.name }}</p>
+            <p class="text-sm text-[var(--muted)]">{{ dual('数量', 'Qty') }}: {{ item.quantity }}</p>
+          </div>
+          <strong class="text-lg">$ {{ formatPrice(item.price * item.quantity) }}</strong>
+        </div>
+      </div>
+
+      <div class="space-y-3 border-t border-[var(--line)] px-6 py-5 text-base">
+        <div class="flex items-center justify-between text-[var(--muted)]">
+          <span>{{ dual('商品小计', 'Subtotal') }}</span>
+          <span>$ {{ formatPrice(totalAmount) }}</span>
+        </div>
+        <div class="flex items-center justify-between text-[var(--muted)]">
+          <span>{{ dual('运费', 'Shipping') }}</span>
+          <span>{{ dual('免运费', 'Free') }}</span>
+        </div>
+        <div class="flex items-center justify-between text-[var(--muted)]">
+          <span>{{ dual('预估税费', 'Estimated Tax') }}</span>
+          <span>$ {{ formatPrice(totalAmount * 0.08) }}</span>
+        </div>
+        <div class="flex items-center justify-between border-t border-[var(--line)] pt-4 text-3xl font-extrabold">
+          <span>{{ t('common.total') }}</span>
+          <span class="text-[var(--accent)]">$ {{ formatPrice(totalAmount * 1.08) }}</span>
+        </div>
+      </div>
+    </aside>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { createOrder, getOrderPre } from '@/api/order.js'
@@ -86,14 +111,22 @@ const orderItems = ref([])
 const addresses = ref([])
 const totalAmount = ref(0)
 const selectedAddressId = ref(null)
+const paymentMethod = ref('card')
 const loading = ref(false)
-const { t } = useI18n()
+const paymentForm = reactive({
+  cardNo: '',
+  expire: '',
+  cvc: '',
+  holder: '',
+  saveCard: false,
+})
+const { t, locale } = useI18n()
+const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
-const formatPrice = (value) => {
-  const numberValue = Number(value || 0)
-  return numberValue.toFixed(2)
-}
+// 统一价格格式化，避免金额显示精度不一致。
+const formatPrice = (value) => Number(value || 0).toFixed(2)
 
+// 读取确认页预览数据：勾选商品、地址列表、金额汇总。
 const loadPreOrder = async () => {
   try {
     const res = await getOrderPre()
@@ -101,16 +134,17 @@ const loadPreOrder = async () => {
       orderItems.value = res.data.items || []
       addresses.value = res.data.addresses || []
       totalAmount.value = Number(res.data.totalAmount || 0)
-      const defaultAddress = addresses.value.find(item => item.isDefault === 1)
+      const defaultAddress = addresses.value.find((item) => item.isDefault === 1)
       selectedAddressId.value = defaultAddress ? defaultAddress.id : addresses.value[0]?.id || null
     } else {
       ElMessage.error(res.message)
     }
-  } catch (error) {
+  } catch {
     ElMessage.error(t('orderConfirm.loadFail'))
   }
 }
 
+// 提交订单前校验地址与商品，再创建主单和子单。
 const submitOrder = async () => {
   if (!selectedAddressId.value) {
     ElMessage.warning(t('orderConfirm.selectAddress'))
@@ -124,18 +158,20 @@ const submitOrder = async () => {
   try {
     const res = await createOrder({ addressId: selectedAddressId.value })
     if (res.code === 200) {
-      ElMessage.success(t('orderConfirm.created'))
+      ElMessage.success(`${t('orderConfirm.created')} #${res.data.orderNo}`)
       router.push('/orders')
     } else {
       ElMessage.error(res.message)
     }
-  } catch (error) {
+  } catch {
     ElMessage.error(t('orderConfirm.submitFail'))
   } finally {
     loading.value = false
   }
 }
 
+// 页面加载时初始化确认页数据。
 onMounted(loadPreOrder)
 </script>
+
 

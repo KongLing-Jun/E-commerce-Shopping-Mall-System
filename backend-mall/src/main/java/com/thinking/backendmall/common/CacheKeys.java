@@ -4,6 +4,8 @@ public final class CacheKeys {
     public static final String HOME_BANNERS = "home:banners";
     public static final String HOME_CATEGORIES = "home:categories";
     public static final String HOME_RECOMMEND = "home:recommend";
+    public static final String HOME_HOT = "home:hot";
+    public static final String HOME_PROMO = "home:promo";
     public static final String PRODUCT_DETAIL_PREFIX = "product:detail:";
     public static final String PRODUCT_SEARCH_PREFIX = "product:search:";
 

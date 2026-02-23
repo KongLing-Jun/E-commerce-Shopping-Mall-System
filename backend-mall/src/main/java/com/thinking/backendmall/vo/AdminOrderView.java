@@ -15,6 +15,8 @@ public class AdminOrderView {
     private LocalDateTime paidAt;
     private LocalDateTime shippedAt;
     private LocalDateTime finishedAt;
+    private String expressNo;
+    private String expressCompany;
     private List<OrderItemView> items;
 
     public String getOrderNo() {
@@ -95,6 +97,22 @@ public class AdminOrderView {
 
     public void setFinishedAt(LocalDateTime finishedAt) {
         this.finishedAt = finishedAt;
+    }
+
+    public String getExpressNo() {
+        return expressNo;
+    }
+
+    public void setExpressNo(String expressNo) {
+        this.expressNo = expressNo;
+    }
+
+    public String getExpressCompany() {
+        return expressCompany;
+    }
+
+    public void setExpressCompany(String expressCompany) {
+        this.expressCompany = expressCompany;
     }
 
     public List<OrderItemView> getItems() {

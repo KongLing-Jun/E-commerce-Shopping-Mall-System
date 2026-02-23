@@ -13,12 +13,15 @@ import com.thinking.backendmall.repository.AddressRepository;
 import com.thinking.backendmall.repository.CartItemRepository;
 import com.thinking.backendmall.repository.OrderItemRepository;
 import com.thinking.backendmall.repository.OrderRepository;
+import com.thinking.backendmall.repository.OrderDeliveryRepository;
 import com.thinking.backendmall.repository.ProductRepository;
 import com.thinking.backendmall.service.OrderService;
+import com.thinking.backendmall.service.MerchantNoticeService;
 import com.thinking.backendmall.vo.CartItemView;
 import com.thinking.backendmall.vo.OrderItemView;
 import com.thinking.backendmall.vo.OrderPreResponse;
 import com.thinking.backendmall.vo.OrderView;
+import com.thinking.backendmall.entity.OrderDelivery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +51,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private OrderDeliveryRepository orderDeliveryRepository;
+
+    @Autowired
+    private MerchantNoticeService merchantNoticeService;
 
     @Override
     public OrderPreResponse preOrder(Long userId) {
@@ -166,6 +175,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(1);
         order.setPaidAt(LocalDateTime.now());
         orderRepository.updateById(order);
+        merchantNoticeService.notifyOrderPaid(orderNo, userId, order.getAddressSnapshot());
     }
 
     @Override
@@ -223,6 +233,12 @@ public class OrderServiceImpl implements OrderService {
         }
         List<OrderItem> items = orderItemRepository.selectList(new LambdaQueryWrapper<OrderItem>()
                 .in(OrderItem::getOrderId, orderIds));
+        List<OrderDelivery> deliveries = orderDeliveryRepository.selectList(new LambdaQueryWrapper<OrderDelivery>()
+                .in(OrderDelivery::getOrderId, orderIds));
+        Map<Long, OrderDelivery> deliveryMap = new HashMap<>();
+        for (OrderDelivery delivery : deliveries) {
+            deliveryMap.put(delivery.getOrderId(), delivery);
+        }
         Map<Long, List<OrderItemView>> itemMap = new HashMap<>();
         for (OrderItem item : items) {
             OrderItemView view = new OrderItemView();
@@ -244,6 +260,11 @@ public class OrderServiceImpl implements OrderService {
             view.setPaidAt(order.getPaidAt());
             view.setShippedAt(order.getShippedAt());
             view.setFinishedAt(order.getFinishedAt());
+            OrderDelivery delivery = deliveryMap.get(order.getId());
+            if (delivery != null) {
+                view.setExpressNo(delivery.getExpressNo());
+                view.setExpressCompany(delivery.getExpressCompany());
+            }
             view.setItems(itemMap.getOrDefault(order.getId(), new ArrayList<>()));
             views.add(view);
         }

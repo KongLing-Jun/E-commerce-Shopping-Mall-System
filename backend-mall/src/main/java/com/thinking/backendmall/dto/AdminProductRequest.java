@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class AdminProductRequest {
     @NotNull(message = "CategoryId is required")
@@ -25,6 +26,7 @@ public class AdminProductRequest {
     private String status;
     private String coverUrl;
     private String detailHtml;
+    private List<String> imageUrls;
 
     public Long getCategoryId() {
         return categoryId;
@@ -88,5 +90,13 @@ public class AdminProductRequest {
 
     public void setDetailHtml(String detailHtml) {
         this.detailHtml = detailHtml;
+    }
+
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
     }
 }

@@ -69,11 +69,46 @@ public class HomeServiceImpl implements HomeService {
         if (cached != null) {
             return cached;
         }
-        Page<Product> page = new Page<>(1, 10);
-        productRepository.selectPage(page, new LambdaQueryWrapper<Product>()
-                .eq(Product::getStatus, "ON"));
-        List<Product> products = page.getRecords();
+        List<Product> products = queryTopProducts(new LambdaQueryWrapper<Product>()
+                .eq(Product::getStatus, "ON")
+                .orderByDesc(Product::getCreatedAt));
         cacheService.set(CacheKeys.HOME_RECOMMEND, products, Duration.ofSeconds(homeTtl));
         return products;
+    }
+
+    @Override
+    public List<Product> getHotProducts() {
+        List<Product> cached = cacheService.get(CacheKeys.HOME_HOT, new TypeReference<List<Product>>() {});
+        if (cached != null) {
+            return cached;
+        }
+        // Use low stock + recent product as a simple hot-sales heuristic.
+        List<Product> products = queryTopProducts(new LambdaQueryWrapper<Product>()
+                .eq(Product::getStatus, "ON")
+                .orderByAsc(Product::getStock)
+                .orderByDesc(Product::getCreatedAt));
+        cacheService.set(CacheKeys.HOME_HOT, products, Duration.ofSeconds(homeTtl));
+        return products;
+    }
+
+    @Override
+    public List<Product> getPromoProducts() {
+        List<Product> cached = cacheService.get(CacheKeys.HOME_PROMO, new TypeReference<List<Product>>() {});
+        if (cached != null) {
+            return cached;
+        }
+        // Use low-price products as a simple promotion feed.
+        List<Product> products = queryTopProducts(new LambdaQueryWrapper<Product>()
+                .eq(Product::getStatus, "ON")
+                .orderByAsc(Product::getPrice)
+                .orderByDesc(Product::getCreatedAt));
+        cacheService.set(CacheKeys.HOME_PROMO, products, Duration.ofSeconds(homeTtl));
+        return products;
+    }
+
+    private List<Product> queryTopProducts(LambdaQueryWrapper<Product> wrapper) {
+        Page<Product> page = new Page<>(1, 10);
+        productRepository.selectPage(page, wrapper);
+        return page.getRecords();
     }
 }

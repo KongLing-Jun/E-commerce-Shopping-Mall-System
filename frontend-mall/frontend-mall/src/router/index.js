@@ -10,6 +10,7 @@ import OrderConfirm from '@/views/OrderConfirm.vue'
 import OrderList from '@/views/OrderList.vue'
 import UserProfile from '@/views/UserProfile.vue'
 import { fetchMyMenus } from '@/api/menus.js'
+import { me } from '@/api/auth.js'
 
 const adminRouteMap = {
   AdminUsers: () => import('@/views/admin/AdminUsers.vue'),
@@ -54,32 +55,47 @@ const router = createRouter({
       path: '/cart',
       name: 'Cart',
       component: Cart,
+      meta: { requiresAuth: true },
     },
     {
       path: '/addresses',
       name: 'Address',
       component: Address,
+      meta: { requiresAuth: true },
     },
     {
       path: '/orders/confirm',
       name: 'OrderConfirm',
       component: OrderConfirm,
+      meta: { requiresAuth: true },
     },
     {
       path: '/orders',
       name: 'OrderList',
       component: OrderList,
+      meta: { requiresAuth: true },
     },
     {
       path: '/profile',
       name: 'UserProfile',
       component: UserProfile,
+      meta: { requiresAuth: true },
     },
   ],
 })
 
 const publicRoutes = ['/login', '/register']
 let dynamicRoutesAdded = false
+
+const parseLocalArray = (key) => {
+  try {
+    const value = localStorage.getItem(key)
+    const parsed = value ? JSON.parse(value) : []
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
 
 const flattenMenus = (menus, result = []) => {
   if (!Array.isArray(menus)) {
@@ -116,7 +132,7 @@ const addAdminRoutes = (menus) => {
         path: menu.path,
         name: menu.component,
         component: componentLoader,
-        meta: { requiresAdmin: true },
+        meta: { requiresAdmin: true, perm: menu.permCode || null },
       })
     }
   })
@@ -124,29 +140,79 @@ const addAdminRoutes = (menus) => {
 
 router.beforeEach(async (to) => {
   const token = localStorage.getItem('token')
-  const roleKey = localStorage.getItem('roleKey')
-  if (!token && !publicRoutes.includes(to.path)) {
+  let roleKey = localStorage.getItem('roleKey')
+  let perms = parseLocalArray('perms')
+  if (!token) {
     dynamicRoutesAdded = false
+  }
+  if (!token && to.meta.requiresAuth) {
     return '/login'
   }
   if (token && publicRoutes.includes(to.path)) {
     return '/'
   }
-  if (token && !dynamicRoutesAdded) {
+  if (token && to.path.startsWith('/admin')) {
     try {
-      const res = await fetchMyMenus()
-      if (res.code === 200) {
-        addAdminRoutes(res.data || [])
-        dynamicRoutesAdded = true
-        if (to.path.startsWith('/admin')) {
-          return to.fullPath
-        }
+      // 所有后台路由都以服务端身份信息为准，防止篡改 localStorage 冒充管理员。
+      const meRes = await me()
+      if (meRes.code !== 200 || meRes.data.roleKey !== 'ADMIN') {
+        return '/'
       }
+      roleKey = meRes.data.roleKey
+      perms = Array.isArray(meRes.data.perms) ? meRes.data.perms : []
+      localStorage.setItem('userId', meRes.data.userId)
+      localStorage.setItem('roleKey', meRes.data.roleKey)
+      localStorage.setItem('menus', JSON.stringify(meRes.data.menus || []))
+      localStorage.setItem('perms', JSON.stringify(perms))
     } catch (error) {
-      // Ignore menu loading errors and continue routing.
+      return '/login'
     }
   }
+  if (token && !dynamicRoutesAdded) {
+    try {
+      if (!roleKey) {
+        const meRes = await me()
+        if (meRes.code === 200) {
+          roleKey = meRes.data.roleKey
+          localStorage.setItem('userId', meRes.data.userId)
+          localStorage.setItem('roleKey', meRes.data.roleKey)
+          localStorage.setItem('menus', JSON.stringify(meRes.data.menus || []))
+          localStorage.setItem('perms', JSON.stringify(meRes.data.perms || []))
+          perms = Array.isArray(meRes.data.perms) ? meRes.data.perms : []
+        }
+      }
+      const cachedMenus = parseLocalArray('menus')
+      if (cachedMenus.length > 0) {
+        addAdminRoutes(cachedMenus)
+        dynamicRoutesAdded = true
+      } else {
+        const res = await fetchMyMenus()
+        if (res.code === 200) {
+          const menus = res.data || []
+          localStorage.setItem('menus', JSON.stringify(menus))
+          addAdminRoutes(menus)
+          dynamicRoutesAdded = true
+        }
+      }
+      if (to.path.startsWith('/admin')) {
+        return to.fullPath
+      }
+    } catch (error) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userId')
+      localStorage.removeItem('roleKey')
+      localStorage.removeItem('menus')
+      localStorage.removeItem('perms')
+      return '/login'
+    }
+  }
+  if (to.path.startsWith('/admin') && roleKey !== 'ADMIN') {
+    return '/'
+  }
   if (to.meta.requiresAdmin && roleKey !== 'ADMIN') {
+    return '/'
+  }
+  if (to.meta.perm && !perms.includes(to.meta.perm)) {
     return '/'
   }
   return true

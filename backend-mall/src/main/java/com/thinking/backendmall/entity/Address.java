@@ -3,6 +3,7 @@ package com.thinking.backendmall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 @TableName("address")
 public class Address {
     @TableId(value = "id", type = IdType.AUTO)
@@ -16,6 +17,7 @@ public class Address {
     private String area;
     private String detail;
     private Integer isDefault; // 1默认 0否
+
     public Long getId() {
         return id;
     }

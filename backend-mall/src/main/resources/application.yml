@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: backend-mall
+  datasource:
+    url: jdbc:mysql://localhost:3306/mall_db?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  secret: mySecretKeyForJwtSigning1234567890
+  expiration: 86400000
+
+app:
+  upload-dir: uploads
+  upload-url-prefix: /uploads
+  cache:
+    home-ttl: 180
+    product-list-ttl: 180
+    product-detail-ttl: 300
+  login:
+    max-attempts: 5
+    lock-seconds: 900
+  notify:
+    merchant-mail:
+      enabled: false
+      to:
+      from:

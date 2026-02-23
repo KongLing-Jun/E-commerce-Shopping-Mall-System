@@ -19,16 +19,21 @@ const loadPerms = () => {
 }
 
 const hasPermission = (required) => {
-  const roleKey = localStorage.getItem('roleKey')
-  if (roleKey === 'ADMIN') {
+  const requiredPerms = normalize(required)
+  if (requiredPerms.length === 0) {
     return true
   }
   const perms = loadPerms()
-  return normalize(required).some((perm) => perms.includes(perm))
+  return requiredPerms.some((perm) => perms.includes(perm))
 }
 
 export const permissionDirective = {
   mounted(el, binding) {
+    if (!hasPermission(binding.value)) {
+      el.remove()
+    }
+  },
+  updated(el, binding) {
     if (!hasPermission(binding.value)) {
       el.remove()
     }

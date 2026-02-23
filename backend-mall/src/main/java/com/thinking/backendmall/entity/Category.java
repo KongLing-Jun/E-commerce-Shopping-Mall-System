@@ -3,6 +3,7 @@ package com.thinking.backendmall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 @TableName("category")
 public class Category {
     @TableId(value = "id", type = IdType.AUTO)
@@ -12,6 +13,7 @@ public class Category {
     private Long parentId;
     private Integer sort;
     private Integer status; // 1启用 0禁用
+
     public Long getId() {
         return id;
     }
@@ -20,20 +22,12 @@ public class Category {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Integer getStatus() {
+        return status;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public Integer getSort() {
@@ -44,11 +38,19 @@ public class Category {
         this.sort = sort;
     }
 
-    public Integer getStatus() {
-        return status;
+    public Long getParentId() {
+        return parentId;
     }
 
-    public void setStatus(Integer status) {
-        this.status = status;
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

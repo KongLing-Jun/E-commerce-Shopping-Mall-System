@@ -6,6 +6,7 @@ import com.thinking.backendmall.entity.Address;
 import java.util.List;
 
 public interface AddressService {
+
     List<Address> listAddresses(Long userId);
 
     void addAddress(Long userId, AddressRequest request);

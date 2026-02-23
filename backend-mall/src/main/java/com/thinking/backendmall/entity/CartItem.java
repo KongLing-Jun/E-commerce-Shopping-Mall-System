@@ -3,7 +3,11 @@ package com.thinking.backendmall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
+
 
 @TableName("cart_item")
 public class CartItem {
@@ -16,6 +20,7 @@ public class CartItem {
     private Integer checked; // 0/1
 
     private LocalDateTime createdAt;
+
     public Long getId() {
         return id;
     }
@@ -24,28 +29,12 @@ public class CartItem {
         this.id = id;
     }
 
-    public Long getUserId() {
-        return userId;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Integer getChecked() {
@@ -56,11 +45,27 @@ public class CartItem {
         this.checked = checked;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public Integer getQuantity() {
+        return quantity;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }
