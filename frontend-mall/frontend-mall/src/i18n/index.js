@@ -1,4 +1,4 @@
-﻿import { computed, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const storedLocale = typeof window === 'undefined' ? null : localStorage.getItem('locale')
 const locale = ref(storedLocale || 'zh')
@@ -18,6 +18,7 @@ const messages = {
       adminProducts: 'Products',
       adminCategories: 'Categories',
       adminOrders: 'Orders',
+      adminShip: 'Ship',
       adminBanners: 'Banners',
       adminCarts: 'Carts',
       adminStats: 'Stats',
@@ -298,6 +299,7 @@ const messages = {
       adminProducts: '商品',
       adminCategories: '分类',
       adminOrders: '订单',
+      adminShip: '发货',
       adminBanners: '轮播图',
       adminCarts: '购物车',
       adminStats: '统计',

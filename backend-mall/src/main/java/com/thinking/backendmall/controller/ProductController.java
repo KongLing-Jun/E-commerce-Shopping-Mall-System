@@ -56,7 +56,12 @@ public class ProductController {
         }
 
         // Record footprint for user-center browsing history.
-        userCenterService.recordFootprint(productId);
+        try {
+            userCenterService.recordFootprint(productId);
+        } catch (Exception e) {
+            // 记录足迹失败不影响获取产品详情
+            System.err.println("记录用户足迹失败: " + e.getMessage());
+        }
         return Result.success(productDetail);
     }
 }

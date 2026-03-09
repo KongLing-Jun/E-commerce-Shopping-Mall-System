@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -63,10 +63,6 @@ const storeNavItems = computed(() => [
 ])
 
 const storeNavItemsForRoute = computed(() => {
-  // 首页只保留浏览入口，隐藏可直接触发购买流程的导航。
-  if (route.path === '/') {
-    return storeNavItems.value.filter((item) => item.path === '/' || item.path === '/products')
-  }
   return storeNavItems.value
 })
 
@@ -170,13 +166,53 @@ const logout = async () => {
 
           <div class="mt-8 space-y-2">
             <router-link
-              v-for="menu in adminMenuItems"
-              :key="menu.path"
-              :to="menu.path"
+              to="/admin/stats"
               class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
-              :class="route.path === menu.path ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+              :class="route.path === '/admin/stats' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
             >
-              {{ resolveMenuLabel(menu) }}
+              {{ t('nav.adminStats') }}
+            </router-link>
+            <router-link
+              to="/admin/users"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === '/admin/users' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+            >
+              {{ t('nav.adminUsers') }}
+            </router-link>
+            <router-link
+              to="/admin/products"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === '/admin/products' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+            >
+              {{ t('nav.adminProducts') }}
+            </router-link>
+            <router-link
+              to="/admin/roles"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === '/admin/roles' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+            >
+              {{ t('nav.adminRoles') }}
+            </router-link>
+            <router-link
+              to="/admin/categories"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === '/admin/categories' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+            >
+              {{ t('nav.adminCategories') }}
+            </router-link>
+            <router-link
+              to="/admin/orders"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === '/admin/orders' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+            >
+              {{ t('nav.adminOrders') }}
+            </router-link>
+            <router-link
+              to="/admin/banners"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === '/admin/banners' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+            >
+              {{ t('nav.adminBanners') }}
             </router-link>
           </div>
 
