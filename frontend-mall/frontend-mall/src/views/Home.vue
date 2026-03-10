@@ -1,4 +1,4 @@
-﻿﻿﻿﻿<template>
+﻿﻿<template>
   <div class="space-y-10">
     <section class="grid gap-4 lg:grid-cols-2">
       <article

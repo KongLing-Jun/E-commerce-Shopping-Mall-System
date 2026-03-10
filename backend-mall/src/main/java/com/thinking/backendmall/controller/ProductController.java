@@ -9,6 +9,8 @@ import com.thinking.backendmall.entity.Product;
 import com.thinking.backendmall.service.ProductService;
 import com.thinking.backendmall.service.UserCenterService;
 import com.thinking.backendmall.vo.ProductDetailView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     private ProductService productService;
@@ -32,35 +36,30 @@ public class ProductController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        // Product list query with keyword/category pagination.
         PageResult<Product> products = productService.searchProducts(keyword, categoryId, page, size);
         return Result.success(products);
     }
 
     @GetMapping("/{productId}")
     public Result<ProductDetailView> getProduct(@PathVariable Long productId) {
-        // 401 for unauthenticated access.
         if (AuthContext.getUserId() == null) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
 
-        // 404 when product does not exist.
         ProductDetailView productDetail = productService.getProductById(productId);
         if (productDetail == null) {
             throw new BusinessException(404, "Product not found");
         }
 
-        // 410 when product is off shelf.
         if (!"ON".equals(productDetail.getStatus())) {
             throw new BusinessException(ErrorCode.PRODUCT_OFF_SHELF.getCode(), "Product is off shelf");
         }
 
-        // Record footprint for user-center browsing history.
+        Long userId = AuthContext.getUserId();
         try {
             userCenterService.recordFootprint(productId);
         } catch (Exception e) {
-            // 记录足迹失败不影响获取产品详情
-            System.err.println("记录用户足迹失败: " + e.getMessage());
+            log.error("记录用户足迹失败: userId={}, productId={}, errorMessage={}", userId, productId, e.getMessage(), e);
         }
         return Result.success(productDetail);
     }
