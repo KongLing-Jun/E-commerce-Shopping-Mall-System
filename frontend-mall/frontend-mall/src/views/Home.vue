@@ -91,6 +91,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getBanners, getRecommend } from '@/api/home.js'
+import { getHello } from '@/api/health.js'
 import { useI18n } from '@/i18n/index.js'
 
 const router = useRouter()
@@ -137,6 +138,11 @@ const loadHomeData = async () => {
   loading.value = true
   try {
     const [bannerRes, recommendRes] = await Promise.all([getBanners(), getRecommend()])
+    try {
+      await getHello()
+    } catch {
+      // Ignore hello API failure so it doesn't block the homepage.
+    }
     if (bannerRes.code === 200) {
       banners.value = bannerRes.data || []
     }

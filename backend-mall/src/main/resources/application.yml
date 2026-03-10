@@ -28,6 +28,8 @@ jwt:
 app:
   upload-dir: uploads
   upload-url-prefix: /uploads
+  seed:
+    refresh-product-images: true
   cache:
     home-ttl: 180
     product-list-ttl: 180

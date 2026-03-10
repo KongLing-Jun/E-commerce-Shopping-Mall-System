@@ -40,6 +40,7 @@ const menuLabelMap = {
   AdminUsers: 'nav.adminUsers',
   AdminRoles: 'nav.adminRoles',
   AdminProducts: 'nav.adminProducts',
+  AdminMenus: 'nav.adminMenus',
   AdminCategories: 'nav.adminCategories',
   AdminOrders: 'nav.adminOrders',
   AdminBanners: 'nav.adminBanners',
@@ -185,6 +186,13 @@ const logout = async () => {
               :class="route.path === '/admin/products' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
             >
               {{ t('nav.adminProducts') }}
+            </router-link>
+            <router-link
+              to="/admin/menus"
+              class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-[var(--muted)] transition"
+              :class="route.path === '/admin/menus' ? 'bg-[var(--highlight)] text-[var(--accent)]' : 'hover:bg-[var(--surface-soft)]'"
+            >
+              {{ t('nav.adminMenus') }}
             </router-link>
             <router-link
               to="/admin/roles"

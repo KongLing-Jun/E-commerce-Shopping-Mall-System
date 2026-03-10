@@ -18,6 +18,7 @@ import com.thinking.backendmall.repository.ProductImageRepository;
 import com.thinking.backendmall.repository.RoleMenuRepository;
 import com.thinking.backendmall.repository.RoleRepository;
 import com.thinking.backendmall.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -60,6 +61,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Value("${app.seed.refresh-product-images:false}")
+    private boolean refreshProductImages;
+
     @Override
     public void run(String... args) {
         if (roleRepository.selectCount(new QueryWrapper<>()) == 0) {
@@ -85,6 +89,9 @@ public class DataInitializer implements CommandLineRunner {
             initProducts();
         }
         normalizeLegacyProductsToThreeC();
+        if (refreshProductImages) {
+            refreshAllProductImages();
+        }
         if (productImageRepository.selectCount(new QueryWrapper<>()) == 0) {
             initProductImages();
         }
@@ -693,6 +700,59 @@ public class DataInitializer implements CommandLineRunner {
             image.setSort(i + 1);
             productImageRepository.insert(image);
         }
+    }
+
+    private void refreshProductGallery(Product product, List<String> gallery) {
+        if (product == null || product.getId() == null) {
+            return;
+        }
+        productImageRepository.delete(new LambdaQueryWrapper<ProductImage>()
+                .eq(ProductImage::getProductId, product.getId()));
+        for (int i = 0; i < gallery.size(); i++) {
+            ProductImage image = new ProductImage();
+            image.setProductId(product.getId());
+            image.setUrl(gallery.get(i));
+            image.setSort(i + 1);
+            productImageRepository.insert(image);
+        }
+    }
+
+    private void refreshAllProductImages() {
+        List<Product> products = productRepository.selectList(new QueryWrapper<>());
+        if (products.isEmpty()) {
+            return;
+        }
+        for (Product product : products) {
+            List<String> gallery = resolveThreeCImageSetStrict(product);
+            if (!gallery.isEmpty()) {
+                product.setCoverUrl(gallery.get(0));
+                if (product.getDetailHtml() == null || product.getDetailHtml().isBlank()) {
+                    product.setDetailHtml("<p>" + (product.getBrief() == null ? "" : product.getBrief()) + "</p>");
+                }
+                productRepository.updateById(product);
+            }
+            refreshProductGallery(product, gallery);
+        }
+    }
+
+    private List<String> resolveThreeCImageSetStrict(Product product) {
+        List<String> gallery = resolveThreeCImageSet(product);
+        if (gallery.isEmpty()) {
+            return Arrays.asList(
+                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"
+            );
+        }
+        if (gallery.size() == 1 && product != null && product.getCoverUrl() != null
+                && product.getCoverUrl().equals(gallery.get(0))) {
+            return Arrays.asList(
+                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
+                    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"
+            );
+        }
+        return gallery;
     }
 
     private List<String> resolveThreeCImageSet(Product product) {

@@ -1,0 +1,108 @@
+package com.thinking.backendmall.vo;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class OrderInvoiceView {
+    private String invoiceNo;
+    private String orderNo;
+    private Long userId;
+    private String username;
+    private Integer status;
+    private BigDecimal totalAmount;
+    private BigDecimal payAmount;
+    private String addressSnapshot;
+    private LocalDateTime createdAt;
+    private LocalDateTime paidAt;
+    private List<OrderItemView> items = new ArrayList<>();
+
+    public String getInvoiceNo() {
+        return invoiceNo;
+    }
+
+    public void setInvoiceNo(String invoiceNo) {
+        this.invoiceNo = invoiceNo;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public BigDecimal getPayAmount() {
+        return payAmount;
+    }
+
+    public void setPayAmount(BigDecimal payAmount) {
+        this.payAmount = payAmount;
+    }
+
+    public String getAddressSnapshot() {
+        return addressSnapshot;
+    }
+
+    public void setAddressSnapshot(String addressSnapshot) {
+        this.addressSnapshot = addressSnapshot;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
+    }
+
+    public List<OrderItemView> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemView> items) {
+        this.items = items;
+    }
+}

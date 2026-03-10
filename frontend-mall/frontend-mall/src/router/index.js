@@ -7,6 +7,7 @@ import ProductDetail from '@/views/ProductDetail.vue'
 import Cart from '@/views/Cart.vue'
 import Address from '@/views/Address.vue'
 import OrderConfirm from '@/views/OrderConfirm.vue'
+import OrderPay from '@/views/OrderPay.vue'
 import OrderList from '@/views/OrderList.vue'
 import UserProfile from '@/views/UserProfile.vue'
 import { fetchMyMenus } from '@/api/menus.js'
@@ -16,6 +17,7 @@ const adminRouteMap = {
   AdminUsers: () => import('@/views/admin/AdminUsers.vue'),
   AdminRoles: () => import('@/views/admin/AdminRoles.vue'),
   AdminProducts: () => import('@/views/admin/AdminProducts.vue'),
+  AdminMenus: () => import('@/views/admin/AdminMenus.vue'),
   AdminCategories: () => import('@/views/admin/AdminCategories.vue'),
   AdminCarts: () => import('@/views/admin/AdminCarts.vue'),
   AdminOrders: () => import('@/views/admin/AdminOrders.vue'),
@@ -81,6 +83,12 @@ const router = createRouter({
       meta: { requiresAuth: true, title: '我的订单' },
     },
     {
+      path: '/orders/pay/:orderNo',
+      name: 'OrderPay',
+      component: OrderPay,
+      meta: { requiresAuth: true, title: 'Payment' },
+    },
+    {
       path: '/profile',
       name: 'UserProfile',
       component: UserProfile,
@@ -108,6 +116,12 @@ const router = createRouter({
       path: '/admin/products',
       name: 'AdminProducts',
       component: () => import('@/views/admin/AdminProducts.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/menus',
+      name: 'AdminMenus',
+      component: () => import('@/views/admin/AdminMenus.vue'),
       meta: { requiresAdmin: true },
     },
     {

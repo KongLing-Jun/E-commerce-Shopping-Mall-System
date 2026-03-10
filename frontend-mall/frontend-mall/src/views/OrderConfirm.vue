@@ -159,7 +159,7 @@ const submitOrder = async () => {
     const res = await createOrder({ addressId: selectedAddressId.value })
     if (res.code === 200) {
       ElMessage.success(`${t('orderConfirm.created')} #${res.data.orderNo}`)
-      router.push('/orders')
+      router.push(`/orders/pay/${res.data.orderNo}`)
     } else {
       ElMessage.error(res.message)
     }

@@ -61,7 +61,10 @@
               <div class="text-lg font-semibold">#{{ order.orderNo }}</div>
             </div>
           </div>
-          <el-button>{{ order.status === 3 ? dual('再次购买', 'Buy Again') : dual('查看发票', 'View Invoice') }}</el-button>
+          <div class="flex gap-2">
+            <el-button v-if="order.status === 3" @click="rebuy(order)">{{ dual('再次购买', 'Buy Again') }}</el-button>
+            <el-button :disabled="order.status === 0" @click="viewInvoice(order)">{{ dual('查看发票', 'View Invoice') }}</el-button>
+          </div>
         </div>
 
         <div class="px-5 py-5">
@@ -97,6 +100,59 @@
 
       <el-empty v-if="!orders.length" :description="t('orderList.noOrders')" />
 
+      <el-dialog v-model="invoiceVisible" :title="dual('订单发票', 'Order Invoice')" width="720px">
+        <div v-if="invoiceLoading" class="py-6 text-center text-[var(--muted)]">{{ dual('加载中...', 'Loading...') }}</div>
+        <div v-else-if="invoiceData">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div>
+              <div class="text-xs font-bold uppercase text-[var(--muted)]">{{ dual('发票号', 'Invoice No') }}</div>
+              <div class="text-lg font-semibold">{{ invoiceData.invoiceNo || '--' }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-bold uppercase text-[var(--muted)]">{{ dual('订单号', 'Order No') }}</div>
+              <div class="text-lg font-semibold">#{{ invoiceData.orderNo }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-bold uppercase text-[var(--muted)]">{{ dual('下单时间', 'Created At') }}</div>
+              <div class="text-lg font-semibold">{{ formatDate(invoiceData.createdAt) }}</div>
+            </div>
+            <div>
+              <div class="text-xs font-bold uppercase text-[var(--muted)]">{{ dual('支付时间', 'Paid At') }}</div>
+              <div class="text-lg font-semibold">{{ formatDate(invoiceData.paidAt) }}</div>
+            </div>
+          </div>
+
+          <div class="mt-6 rounded-2xl border border-[var(--line)]">
+            <div class="grid grid-cols-4 gap-2 border-b border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3 text-xs font-bold uppercase text-[var(--muted)]">
+              <div>{{ dual('商品', 'Item') }}</div>
+              <div class="text-center">{{ dual('数量', 'Qty') }}</div>
+              <div class="text-center">{{ dual('单价', 'Price') }}</div>
+              <div class="text-right">{{ dual('小计', 'Subtotal') }}</div>
+            </div>
+            <div v-for="item in invoiceData.items || []" :key="item.productId" class="grid grid-cols-4 gap-2 border-b border-[var(--line)] px-4 py-3 last:border-b-0">
+              <div class="truncate font-semibold">{{ item.productName }}</div>
+              <div class="text-center">{{ item.quantity }}</div>
+              <div class="text-center">$ {{ formatPrice(item.price) }}</div>
+              <div class="text-right">$ {{ formatPrice(item.price * item.quantity) }}</div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-4">
+            <div class="text-sm text-[var(--muted)]">
+              <div class="font-semibold text-[var(--text)]">{{ dual('收货地址', 'Shipping Address') }}</div>
+              <p class="mt-1 max-w-md">{{ invoiceData.addressSnapshot || '--' }}</p>
+            </div>
+            <div class="text-right">
+              <div class="text-xs font-bold uppercase text-[var(--muted)]">{{ dual('合计', 'Total') }}</div>
+              <div class="text-2xl font-extrabold">$ {{ formatPrice(invoiceData.payAmount) }}</div>
+            </div>
+          </div>
+        </div>
+        <template #footer>
+          <el-button @click="invoiceVisible = false">{{ dual('关闭', 'Close') }}</el-button>
+        </template>
+      </el-dialog>
+
       <div class="flex justify-center">
         <el-pagination
           v-if="total > 0"
@@ -115,16 +171,21 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { confirmOrder, getOrders, payOrder } from '@/api/order.js'
+import { useRouter } from 'vue-router'
+import { confirmOrder, getOrderInvoice, getOrders, rebuyOrder } from '@/api/order.js'
 import { fetchUserProfile } from '@/api/user.js'
 import { useI18n } from '@/i18n/index.js'
 
+const router = useRouter()
 const orders = ref([])
 const profile = ref({})
 const page = ref(1)
 const size = ref(6)
 const total = ref(0)
 const statusFilter = ref(null)
+const invoiceVisible = ref(false)
+const invoiceLoading = ref(false)
+const invoiceData = ref(null)
 const { t, locale } = useI18n()
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
@@ -192,25 +253,14 @@ const changeStatus = (status) => {
   loadOrders()
 }
 
-// 模拟支付，成功后刷新状态。
+// Redirect to payment page
 const pay = async (order) => {
-  try {
-    await ElMessageBox.confirm(t('orderList.payConfirm'), 'Confirm', { type: 'warning' })
-    const res = await payOrder(order.orderNo, { payAmount: order.payAmount })
-    if (res.code === 200) {
-      ElMessage.success(t('orderList.paySuccess'))
-      loadOrders()
-    } else {
-      ElMessage.error(res.message)
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(t('orderList.payFail'))
-    }
+  if (!order?.orderNo) {
+    return
   }
+  router.push(`/orders/pay/${order.orderNo}`)
 }
 
-// 确认收货，仅已发货订单可执行。
 const confirm = async (order) => {
   try {
     await ElMessageBox.confirm(t('orderList.confirmConfirm'), 'Confirm', { type: 'warning' })
@@ -225,6 +275,50 @@ const confirm = async (order) => {
     if (error !== 'cancel') {
       ElMessage.error(t('orderList.confirmFail'))
     }
+  }
+}
+
+// 打开发票弹窗并加载发票数据（仅已支付订单）。
+const viewInvoice = async (order) => {
+  invoiceVisible.value = true
+  invoiceLoading.value = true
+  invoiceData.value = null
+  try {
+    const res = await getOrderInvoice(order.orderNo)
+    if (res.code === 200) {
+      invoiceData.value = res.data
+    } else {
+      ElMessage.error(res.message)
+      invoiceVisible.value = false
+    }
+  } catch {
+    ElMessage.error(dual('发票获取失败', 'Failed to load invoice'))
+    invoiceVisible.value = false
+  } finally {
+    invoiceLoading.value = false
+  }
+}
+
+// 再次购买：将历史订单商品重新加入购物车。
+const rebuy = async (order) => {
+  try {
+    const res = await rebuyOrder(order.orderNo)
+    if (res.code === 200) {
+      const added = res.data?.addedItems?.length || 0
+      const skipped = res.data?.skippedItems?.length || 0
+      if (skipped > 0) {
+        ElMessage.warning(
+          dual(`已加入 ${added} 件，${skipped} 件因库存不足跳过`, `Added ${added} item(s), ${skipped} skipped due to stock`)
+        )
+      } else {
+        ElMessage.success(dual('已加入购物车', 'Added to cart'))
+      }
+      window.location.href = '/cart'
+    } else {
+      ElMessage.error(res.message)
+    }
+  } catch {
+    ElMessage.error(dual('再次购买失败', 'Rebuy failed'))
   }
 }
 

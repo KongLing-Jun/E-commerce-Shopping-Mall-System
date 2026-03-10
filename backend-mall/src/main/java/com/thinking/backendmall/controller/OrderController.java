@@ -8,7 +8,9 @@ import com.thinking.backendmall.config.security.AuthContext;
 import com.thinking.backendmall.dto.OrderCreateRequest;
 import com.thinking.backendmall.dto.OrderPayRequest;
 import com.thinking.backendmall.vo.OrderPreResponse;
+import com.thinking.backendmall.vo.OrderInvoiceView;
 import com.thinking.backendmall.vo.OrderView;
+import com.thinking.backendmall.vo.RebuyResponse;
 import com.thinking.backendmall.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,11 @@ public class OrderController {
         return Result.success();
     }
 
+    @GetMapping("/{orderNo}")
+    public Result<OrderView> getOrder(@PathVariable String orderNo) {
+        return Result.success(orderService.getOrder(requireUserId(), orderNo));
+    }
+
     @GetMapping
     public Result<PageResult<OrderView>> listOrders(
             @RequestParam(required = false) Integer status,
@@ -56,6 +63,16 @@ public class OrderController {
     public Result<Void> confirmOrder(@PathVariable String orderNo) {
         orderService.confirmOrder(requireUserId(), orderNo);
         return Result.success();
+    }
+
+    @GetMapping("/{orderNo}/invoice")
+    public Result<OrderInvoiceView> getInvoice(@PathVariable String orderNo) {
+        return Result.success(orderService.getInvoice(requireUserId(), orderNo));
+    }
+
+    @PostMapping("/{orderNo}/rebuy")
+    public Result<RebuyResponse> rebuy(@PathVariable String orderNo) {
+        return Result.success(orderService.rebuy(requireUserId(), orderNo));
     }
 
     private Long requireUserId() {

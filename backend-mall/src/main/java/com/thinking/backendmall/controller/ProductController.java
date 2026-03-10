@@ -42,10 +42,7 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     public Result<ProductDetailView> getProduct(@PathVariable Long productId) {
-        if (AuthContext.getUserId() == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-
+        Long userId = AuthContext.getUserId();
         ProductDetailView productDetail = productService.getProductById(productId);
         if (productDetail == null) {
             throw new BusinessException(404, "Product not found");
@@ -55,11 +52,12 @@ public class ProductController {
             throw new BusinessException(ErrorCode.PRODUCT_OFF_SHELF.getCode(), "Product is off shelf");
         }
 
-        Long userId = AuthContext.getUserId();
-        try {
-            userCenterService.recordFootprint(productId);
-        } catch (Exception e) {
-            log.error("记录用户足迹失败: userId={}, productId={}, errorMessage={}", userId, productId, e.getMessage(), e);
+        if (userId != null) {
+            try {
+                userCenterService.recordFootprint(productId);
+            } catch (Exception e) {
+                log.error("记录用户足迹失败: userId={}, productId={}, errorMessage={}", userId, productId, e.getMessage(), e);
+            }
         }
         return Result.success(productDetail);
     }
