@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
@@ -30,56 +30,115 @@ const router = createRouter({
       path: '/',
       name: 'Home',
       component: Home,
+      meta: { title: 'E E-Shop - 首页' },
     },
     {
       path: '/login',
       name: 'Login',
       component: Login,
+      meta: { title: '用户登录' },
     },
     {
       path: '/register',
       name: 'Register',
       component: Register,
+      meta: { title: '用户注册' },
     },
     {
       path: '/products',
       name: 'ProductList',
       component: ProductList,
+      meta: { title: '商品列表' },
     },
     {
       path: '/product/:productId',
       name: 'ProductDetail',
       component: ProductDetail,
+      meta: { title: '商品详情' },
     },
     {
       path: '/cart',
       name: 'Cart',
       component: Cart,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, title: '购物车' },
     },
     {
       path: '/addresses',
       name: 'Address',
       component: Address,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, title: '收货地址' },
     },
     {
       path: '/orders/confirm',
       name: 'OrderConfirm',
       component: OrderConfirm,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, title: '确认订单' },
     },
     {
       path: '/orders',
       name: 'OrderList',
       component: OrderList,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, title: '我的订单' },
     },
     {
       path: '/profile',
       name: 'UserProfile',
       component: UserProfile,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, title: '用户中心' },
+    },
+    {
+      path: '/admin',
+      name: 'AdminRoot',
+      redirect: '/admin/stats',
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/stats',
+      name: 'AdminStats',
+      component: () => import('@/views/admin/AdminStats.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/users',
+      name: 'AdminUsers',
+      component: () => import('@/views/admin/AdminUsers.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/products',
+      name: 'AdminProducts',
+      component: () => import('@/views/admin/AdminProducts.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/roles',
+      name: 'AdminRoles',
+      component: () => import('@/views/admin/AdminRoles.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/categories',
+      name: 'AdminCategories',
+      component: () => import('@/views/admin/AdminCategories.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/orders',
+      name: 'AdminOrders',
+      component: () => import('@/views/admin/AdminOrders.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/banners',
+      name: 'AdminBanners',
+      component: () => import('@/views/admin/AdminBanners.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/carts',
+      name: 'AdminCarts',
+      component: () => import('@/views/admin/AdminCarts.vue'),
+      meta: { requiresAdmin: true },
     },
   ],
 })
@@ -139,6 +198,11 @@ const addAdminRoutes = (menus) => {
 }
 
 router.beforeEach(async (to) => {
+  // 设置页面标题
+  if (to.meta.title) {
+    document.title = to.meta.title
+  }
+
   const token = localStorage.getItem('token')
   let roleKey = localStorage.getItem('roleKey')
   let perms = parseLocalArray('perms')

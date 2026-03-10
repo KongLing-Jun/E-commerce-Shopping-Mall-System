@@ -1,4 +1,4 @@
-﻿<template>
+﻿﻿<template>
   <div class="space-y-10">
     <section class="grid gap-4 lg:grid-cols-2">
       <article
@@ -146,7 +146,7 @@ const loadHomeData = async () => {
       hotProducts.value = recommendRes.data.hotProducts || recommendProducts.value.slice(0, 4)
       promoProducts.value = recommendRes.data.promoProducts || []
     }
-  } catch {
+  } catch (error) {
     ElMessage.error(dual('首页数据加载失败', 'Failed to load home data'))
   } finally {
     loading.value = false

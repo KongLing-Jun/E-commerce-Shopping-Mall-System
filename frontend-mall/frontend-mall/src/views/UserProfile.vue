@@ -176,14 +176,10 @@ import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import {
   changeUserPassword,
-  fetchUserFavorites,
-  fetchUserFootprints,
   fetchUserProfile,
-  fetchUserSummary,
-  removeUserFavorite,
-  removeUserFootprint,
   updateUserProfile,
 } from '@/api/user.js'
+import { getOrders } from '@/api/order.js'
 import { useI18n } from '@/i18n/index.js'
 
 const router = useRouter()
@@ -220,9 +216,36 @@ const passwordForm = reactive({
   confirmPassword: '',
 })
 
+const getFavoritesFromStorage = () => {
+  try {
+    const stored = localStorage.getItem('userFavorites')
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
+const saveFavoritesToStorage = (favoritesList) => {
+  localStorage.setItem('userFavorites', JSON.stringify(favoritesList))
+}
+
+const getFootprintsFromStorage = () => {
+  try {
+    const stored = localStorage.getItem('userFootprints')
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
+const saveFootprintsToStorage = (footprintsList) => {
+  localStorage.setItem('userFootprints', JSON.stringify(footprintsList))
+}
+
 const loadProfile = async () => {
   try {
     const res = await fetchUserProfile()
+    console.log('Profile API Response:', res)
     if (res.code === 200 && res.data) {
       profile.id = res.data.id
       profile.username = res.data.username
@@ -234,6 +257,7 @@ const loadProfile = async () => {
       ElMessage.error(res.message || t('common.empty'))
     }
   } catch (error) {
+    console.error('Load profile error:', error)
     ElMessage.error(t('common.empty'))
   }
 }
@@ -272,75 +296,77 @@ const saveProfile = async () => {
 
 const loadSummary = async () => {
   try {
-    const res = await fetchUserSummary()
+    const params = { page: 0, size: 100 }
+    const res = await getOrders(params)
+    console.log('Orders API Response for summary:', res)
     if (res.code === 200 && res.data) {
-      summary.totalOrders = res.data.totalOrders || 0
-      summary.pendingOrders = res.data.pendingOrders || 0
-      summary.paidOrders = res.data.paidOrders || 0
-      summary.shippedOrders = res.data.shippedOrders || 0
-      summary.completedOrders = res.data.completedOrders || 0
-      summary.favoriteCount = res.data.favoriteCount || 0
-      summary.footprintCount = res.data.footprintCount || 0
+      const orders = res.data.content || []
+      summary.totalOrders = res.data.totalElements || orders.length || 0
+      summary.pendingOrders = orders.filter(o => o.status === 0).length
+      summary.paidOrders = orders.filter(o => o.status === 1).length
+      summary.shippedOrders = orders.filter(o => o.status === 2).length
+      summary.completedOrders = orders.filter(o => o.status === 3).length
     }
   } catch (error) {
-    // ignore
+    console.error('Load summary error:', error)
   }
+  // 从localStorage获取收藏和足迹数量
+  const favList = getFavoritesFromStorage()
+  summary.favoriteCount = favList.length
+  const footprintList = getFootprintsFromStorage()
+  summary.footprintCount = footprintList.length
 }
 
 const loadFavorites = async () => {
   try {
-    const res = await fetchUserFavorites()
-    if (res.code === 200) {
-      favorites.value = res.data || []
-    }
+    favorites.value = getFavoritesFromStorage()
+    summary.favoriteCount = favorites.value.length
   } catch (error) {
-    // ignore
+    console.error('Load favorites error:', error)
+    favorites.value = []
   }
 }
 
 const loadFootprints = async () => {
   try {
-    const res = await fetchUserFootprints()
-    if (res.code === 200) {
-      footprints.value = res.data || []
-    }
+    footprints.value = getFootprintsFromStorage()
+    summary.footprintCount = footprints.value.length
   } catch (error) {
-    // ignore
-  }
-}
-
-const goToProduct = (productId) => {
-  router.push(`/product/${productId}`)
-}
-
-const removeFavorite = async (productId) => {
-  try {
-    const res = await removeUserFavorite(productId)
-    if (res.code === 200) {
-      ElMessage.success(t('profile.removed'))
-      loadFavorites()
-      loadSummary()
-    } else {
-      ElMessage.error(res.message || t('common.empty'))
-    }
-  } catch (error) {
-    ElMessage.error(t('common.empty'))
+    console.error('Load footprints error:', error)
+    footprints.value = []
   }
 }
 
 const removeFootprint = async (productId) => {
   try {
-    const res = await removeUserFootprint(productId)
-    if (res.code === 200) {
-      ElMessage.success(t('profile.removed'))
-      loadFootprints()
-      loadSummary()
-    } else {
-      ElMessage.error(res.message || t('common.empty'))
-    }
+    const footprintList = getFootprintsFromStorage()
+    const newFootprintList = footprintList.filter(item => item.productId !== productId)
+    saveFootprintsToStorage(newFootprintList)
+    footprints.value = newFootprintList
+    summary.footprintCount = newFootprintList.length
+    ElMessage.success('已移除足迹')
   } catch (error) {
-    ElMessage.error(t('common.empty'))
+    console.error('Remove footprint error:', error)
+    ElMessage.error('移除失败')
   }
+}
+
+const removeFavorite = async (productId) => {
+  try {
+    const favList = getFavoritesFromStorage()
+    const newFavList = favList.filter(item => item.productId !== productId)
+    saveFavoritesToStorage(newFavList)
+    favorites.value = newFavList
+    summary.favoriteCount = newFavList.length
+    ElMessage.success('已移除收藏')
+  } catch (error) {
+    console.error('Remove favorite error:', error)
+    ElMessage.error('移除失败')
+  }
+}
+
+const goToProduct = (productId) => {
+  router.push(`/product/${productId}`)
 }
 
 const changePassword = async () => {

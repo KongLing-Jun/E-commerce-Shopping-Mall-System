@@ -1,4 +1,4 @@
-﻿<template>
+﻿﻿<template>
   <div class="space-y-8">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item to="/">{{ t('nav.home') }}</el-breadcrumb-item>
@@ -63,7 +63,7 @@
           <el-button type="primary" size="large" :disabled="product.stock <= 0" @click="addToCart">
             {{ t('productDetail.addToCart') }}
           </el-button>
-          <el-button size="large" @click="addFavorite">Fav</el-button>
+          <el-button size="large" @click="addFavorite">{{ isFavorited ? '已收藏' : 'Fav' }}</el-button>
         </div>
 
         <el-button class="w-full" size="large" type="info" @click="buyNow">{{ dual('立即购买', 'Buy Now') }}</el-button>
@@ -134,7 +134,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getProduct } from '@/api/product.js'
 import { addCartItem } from '@/api/cart.js'
-import { addUserFavorite } from '@/api/user.js'
 import { useI18n } from '@/i18n/index.js'
 
 const route = useRoute()
@@ -154,6 +153,55 @@ const tabs = [
 ]
 const { t, locale } = useI18n()
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
+
+const getFavorites = () => {
+  try {
+    const favorites = localStorage.getItem('userFavorites')
+    return favorites ? JSON.parse(favorites) : []
+  } catch {
+    return []
+  }
+}
+
+const saveFavorites = (favorites) => {
+  localStorage.setItem('userFavorites', JSON.stringify(favorites))
+}
+
+const getFootprints = () => {
+  try {
+    const footprints = localStorage.getItem('userFootprints')
+    return footprints ? JSON.parse(footprints) : []
+  } catch {
+    return []
+  }
+}
+
+const saveFootprints = (footprints) => {
+  localStorage.setItem('userFootprints', JSON.stringify(footprints))
+}
+
+const addFootprint = () => {
+  if (!product.value) return
+  const footprints = getFootprints()
+  // 移除已存在的相同商品
+  const filteredFootprints = footprints.filter(item => item.productId !== product.value.id)
+  // 添加到最前面
+  filteredFootprints.unshift({
+    productId: product.value.id,
+    name: product.value.name,
+    brief: product.value.brief,
+    price: product.value.price,
+    coverUrl: product.value.coverUrl,
+  })
+  // 只保留最近20条
+  saveFootprints(filteredFootprints.slice(0, 20))
+}
+
+const isFavorited = computed(() => {
+  if (!product.value) return false
+  const favorites = getFavorites()
+  return favorites.some(item => item.productId === product.value.id)
+})
 
 const gallery = computed(() => {
   if (!product.value) {
@@ -193,6 +241,7 @@ const loadProduct = async () => {
     if (res.code === 200) {
       product.value = res.data
       quantity.value = 1
+      addFootprint()
     } else if (res.code === 401) {
       errorText.value = t('productDetail.loginRequired')
     } else if (res.code === 404) {
@@ -243,19 +292,29 @@ const buyNow = async () => {
 }
 
 const addFavorite = async () => {
-  // 收藏当前商品，重复收藏由后端做幂等处理。
+  // 收藏当前商品，使用localStorage本地存储
   if (!product.value) {
     return
   }
-  try {
-    const res = await addUserFavorite({ productId: product.value.id })
-    if (res.code === 200) {
-      ElMessage.success(t('productDetail.favorited'))
-    } else {
-      ElMessage.info(res.message || t('common.empty'))
-    }
-  } catch {
-    ElMessage.error(t('common.empty'))
+  const favorites = getFavorites()
+  const existingIndex = favorites.findIndex(item => item.productId === product.value.id)
+
+  if (existingIndex >= 0) {
+    // 取消收藏
+    favorites.splice(existingIndex, 1)
+    saveFavorites(favorites)
+    ElMessage.success('已取消收藏')
+  } else {
+    // 添加收藏
+    favorites.unshift({
+      productId: product.value.id,
+      name: product.value.name,
+      brief: product.value.brief,
+      price: product.value.price,
+      coverUrl: product.value.coverUrl,
+    })
+    saveFavorites(favorites)
+    ElMessage.success(t('productDetail.favorited'))
   }
 }
 
