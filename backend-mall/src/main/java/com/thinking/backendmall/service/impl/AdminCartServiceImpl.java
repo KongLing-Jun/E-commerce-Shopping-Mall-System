@@ -33,6 +33,7 @@ public class AdminCartServiceImpl implements AdminCartService {
     private ProductRepository productRepository;
 
     @Override
+    // 功能：查询购物车明细
     public PageResult<AdminCartItemView> listCartItems(Long userId, int page, int size) {
         Page<CartItem> pageResult = new Page<>(page + 1L, size);
         LambdaQueryWrapper<CartItem> wrapper = new LambdaQueryWrapper<>();
@@ -86,6 +87,7 @@ public class AdminCartServiceImpl implements AdminCartService {
     }
 
     @Override
+    // 功能：删除购物车明细
     public void deleteCartItem(Long cartItemId) {
         CartItem item = cartItemRepository.selectById(cartItemId);
         if (item == null) {

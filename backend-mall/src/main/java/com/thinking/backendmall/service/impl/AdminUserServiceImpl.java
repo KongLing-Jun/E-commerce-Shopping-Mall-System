@@ -36,6 +36,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
+    // 功能：查询用户
     public PageResult<AdminUserView> listUsers(String keyword, int page, int size) {
         // Page users by username/phone keyword.
         Page<User> pageResult = new Page<>(page + 1L, size);
@@ -74,10 +75,13 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    // 功能：创建用户
     public Long createUser(AdminUserUpsertRequest request) {
         // Validate role and uniqueness before create.
         Role role = ensureRole(request.getRoleId());
+        // 功能：处理assertunique用户名
         assertUniqueUsername(request.getUsername(), null);
+        // 功能：处理assertunique手机号
         assertUniquePhone(request.getPhone(), null);
 
         User user = new User();
@@ -92,6 +96,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    // 功能：更新用户
     public void updateUser(Long userId, AdminUserUpsertRequest request) {
         // Update base profile and optional password.
         User user = userRepository.selectById(userId);
@@ -100,7 +105,9 @@ public class AdminUserServiceImpl implements AdminUserService {
         }
 
         Role role = ensureRole(request.getRoleId());
+        // 功能：处理assertunique用户名
         assertUniqueUsername(request.getUsername(), userId);
+        // 功能：处理assertunique手机号
         assertUniquePhone(request.getPhone(), userId);
 
         user.setUsername(request.getUsername().trim());
@@ -114,6 +121,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    // 功能：禁用用户
     public void disableUser(Long userId) {
         User user = userRepository.selectById(userId);
         if (user == null) {
@@ -124,6 +132,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    // 功能：重置密码
     public void resetPassword(Long userId, String newPassword) {
         User user = userRepository.selectById(userId);
         if (user == null) {
@@ -135,6 +144,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    // 功能：更新用户角色
     public void updateUserRole(Long userId, Long roleId) {
         User user = userRepository.selectById(userId);
         if (user == null) {
@@ -151,6 +161,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         userRepository.updateById(user);
     }
 
+    // 功能：加载角色
     private Map<Long, Role> loadRoles(List<User> users) {
         Map<Long, Role> map = new HashMap<>();
         if (users.isEmpty()) {
@@ -170,6 +181,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         return map;
     }
 
+    // 功能：处理ensure角色
     private Role ensureRole(Long roleId) {
         if (roleId == null) {
             throw new BusinessException(400, "Role is required");
@@ -181,6 +193,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         return role;
     }
 
+    // 功能：处理resolve密码
     private String resolvePassword(String rawPassword) {
         if (rawPassword == null || rawPassword.isBlank()) {
             return DEFAULT_PASSWORD;
@@ -188,11 +201,13 @@ public class AdminUserServiceImpl implements AdminUserService {
         return rawPassword.trim();
     }
 
+    // 功能：处理normalize状态
     private Integer normalizeStatus(Integer status) {
         // Default to enabled when status is not provided.
         return status != null && status == 0 ? 0 : 1;
     }
 
+    // 功能：处理assertunique用户名
     private void assertUniqueUsername(String username, Long excludeUserId) {
         if (username == null || username.isBlank()) {
             throw new BusinessException(400, "Username is required");
@@ -208,6 +223,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         }
     }
 
+    // 功能：处理assertunique手机号
     private void assertUniquePhone(String phone, Long excludeUserId) {
         if (phone == null || phone.isBlank()) {
             throw new BusinessException(400, "Phone is required");

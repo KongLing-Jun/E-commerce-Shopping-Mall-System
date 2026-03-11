@@ -4,13 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.thinking.backendmall.common.BusinessException;
 import com.thinking.backendmall.common.PageResult;
-import com.thinking.backendmall.entity.OrderDelivery;
+import com.thinking.backendmall.dto.AdminOrderTrackingRequest;
 import com.thinking.backendmall.entity.Order;
+import com.thinking.backendmall.entity.OrderDelivery;
 import com.thinking.backendmall.entity.OrderItem;
+import com.thinking.backendmall.entity.OrderTrackingEvent;
 import com.thinking.backendmall.entity.User;
 import com.thinking.backendmall.repository.OrderDeliveryRepository;
 import com.thinking.backendmall.repository.OrderItemRepository;
 import com.thinking.backendmall.repository.OrderRepository;
+import com.thinking.backendmall.repository.OrderTrackingEventRepository;
 import com.thinking.backendmall.repository.UserRepository;
 import com.thinking.backendmall.service.AdminOrderService;
 import com.thinking.backendmall.vo.AdminOrderView;
@@ -44,7 +47,11 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Autowired
     private OrderDeliveryRepository orderDeliveryRepository;
 
+    @Autowired
+    private OrderTrackingEventRepository orderTrackingEventRepository;
+
     @Override
+    // 功能：分页查询订单列表。
     public PageResult<AdminOrderView> listOrders(String orderNo, Long userId, Integer status, int page, int size) {
         Page<Order> pageResult = new Page<>(page + 1L, size);
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
@@ -92,6 +99,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     }
 
     @Override
+    // 功能：发货订单并记录物流信息。
     public void shipOrder(String orderNo, String expressNo, String expressCompany) {
         Order order = orderRepository.selectOne(new LambdaQueryWrapper<Order>()
                 .eq(Order::getOrderNo, orderNo));
@@ -117,9 +125,13 @@ public class AdminOrderServiceImpl implements AdminOrderService {
             delivery.setExpressCompany(expressCompany);
             orderDeliveryRepository.updateById(delivery);
         }
+        // 记录发货轨迹事件，便于前台追踪展示。
+        String detail = buildDeliveryDetail(expressCompany, expressNo);
+        recordTrackingEvent(order.getId(), order.getStatus(), "订单已发货", detail, expressCompany, order.getShippedAt());
     }
 
     @Override
+    // 功能：导出订单。
     public byte[] exportOrders(String orderNo, Long userId, Integer status) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
         if (orderNo != null && !orderNo.isBlank()) {
@@ -177,6 +189,22 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         }
     }
 
+    @Override
+    // 功能：新增订单物流轨迹记录。
+    public void addTrackingEvent(String orderNo, AdminOrderTrackingRequest request) {
+        Order order = orderRepository.selectOne(new LambdaQueryWrapper<Order>()
+                .eq(Order::getOrderNo, orderNo));
+        if (order == null) {
+            throw new BusinessException(404, "Order not found");
+        }
+        if (request == null) {
+            throw new BusinessException(400, "Tracking request is required");
+        }
+        LocalDateTime eventTime = request.getEventTime() == null ? LocalDateTime.now() : request.getEventTime();
+        recordTrackingEvent(order.getId(), request.getStatus(), request.getTitle(), request.getDescription(), request.getLocation(), eventTime);
+    }
+
+    // 功能：加载订单关联用户。
     private Map<Long, String> loadUsers(List<Order> orders) {
         Map<Long, String> userMap = new HashMap<>();
         if (orders.isEmpty()) {
@@ -192,6 +220,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         return userMap;
     }
 
+    // 功能：加载订单关联商品明细。
     private Map<Long, List<OrderItemView>> loadItems(List<Order> orders) {
         Map<Long, List<OrderItemView>> itemMap = new HashMap<>();
         if (orders.isEmpty()) {
@@ -215,6 +244,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         return itemMap;
     }
 
+    // 功能：加载订单物流信息。
     private Map<Long, OrderDelivery> loadDelivery(List<Order> orders) {
         Map<Long, OrderDelivery> deliveryMap = new HashMap<>();
         if (orders.isEmpty()) {
@@ -232,6 +262,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         return deliveryMap;
     }
 
+    // 功能：写入订单导出行数据。
     private void fillOrderRow(Row row, Order order, String username, OrderItemView item, OrderDelivery delivery) {
         row.createCell(0).setCellValue(order.getOrderNo());
         row.createCell(1).setCellValue(order.getUserId() == null ? "" : String.valueOf(order.getUserId()));
@@ -253,5 +284,31 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         }
         row.createCell(11).setCellValue(delivery == null || delivery.getExpressNo() == null ? "" : delivery.getExpressNo());
         row.createCell(12).setCellValue(delivery == null || delivery.getExpressCompany() == null ? "" : delivery.getExpressCompany());
+    }
+
+    // 功能：记录订单物流轨迹事件。
+    private void recordTrackingEvent(Long orderId, Integer status, String title, String description, String location, LocalDateTime eventTime) {
+        if (orderId == null || title == null || title.isBlank()) {
+            return;
+        }
+        OrderTrackingEvent event = new OrderTrackingEvent();
+        event.setOrderId(orderId);
+        event.setStatus(status);
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setLocation(location);
+        event.setEventTime(eventTime == null ? LocalDateTime.now() : eventTime);
+        event.setCreatedAt(LocalDateTime.now());
+        orderTrackingEventRepository.insert(event);
+    }
+
+    // 功能：拼接物流摘要描述。
+    private String buildDeliveryDetail(String expressCompany, String expressNo) {
+        if ((expressCompany == null || expressCompany.isBlank()) && (expressNo == null || expressNo.isBlank())) {
+            return "包裹已出库，正在运输中。";
+        }
+        String company = expressCompany == null ? "快递" : expressCompany;
+        String no = expressNo == null ? "" : expressNo;
+        return String.format("%s %s 已揽收，正在运输中。", company, no).trim();
     }
 }

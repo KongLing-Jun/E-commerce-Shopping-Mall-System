@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="space-y-6">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -30,6 +30,9 @@
         </el-table-column>
         <el-table-column prop="linkType" :label="t('admin.linkType')" width="120" />
         <el-table-column prop="linkTarget" :label="t('admin.linkTarget')" min-width="200" />
+        <el-table-column prop="title" :label="t('admin.bannerTitleText')" min-width="160" />
+        <el-table-column prop="subtitle" :label="t('admin.bannerSubtitleText')" min-width="200" />
+        <el-table-column prop="buttonText" :label="t('admin.bannerButtonText')" width="140" />
         <el-table-column prop="sort" :label="t('admin.sort')" width="90" />
         <el-table-column :label="t('common.status')" width="120">
           <template #default="{ row }">
@@ -82,6 +85,15 @@
         </el-form-item>
         <el-form-item :label="t('admin.linkTarget')">
           <el-input v-model="form.linkTarget" />
+        </el-form-item>
+        <el-form-item :label="t('admin.bannerTitleText')">
+          <el-input v-model="form.title" />
+        </el-form-item>
+        <el-form-item :label="t('admin.bannerSubtitleText')">
+          <el-input v-model="form.subtitle" />
+        </el-form-item>
+        <el-form-item :label="t('admin.bannerButtonText')">
+          <el-input v-model="form.buttonText" />
         </el-form-item>
         <div class="grid gap-4 md:grid-cols-2">
           <el-form-item :label="t('admin.sort')">
@@ -141,12 +153,16 @@ const form = reactive({
   imageUrl: '',
   linkType: 'PRODUCT',
   linkTarget: '',
+  title: '',
+  subtitle: '',
+  buttonText: '',
   sort: 0,
   status: 1,
 })
 
 const dialogTitle = computed(() => (editingId.value ? t('common.edit') : t('admin.newBanner')))
 
+// 功能：获取轮播图
 const fetchBanners = async () => {
   loading.value = true
   try {
@@ -169,47 +185,60 @@ const fetchBanners = async () => {
   }
 }
 
+// 功能：重置filters
 const resetFilters = () => {
   filters.status = ''
   page.value = 0
   fetchBanners()
 }
 
+// 功能：修改分页
 const changePage = (nextPage) => {
   page.value = nextPage - 1
   fetchBanners()
 }
 
+// 功能：修改分页大小
 const changeSize = (nextSize) => {
   size.value = nextSize
   page.value = 0
   fetchBanners()
 }
 
+// 功能：重置form
 const resetForm = () => {
   form.imageUrl = ''
   form.linkType = 'PRODUCT'
   form.linkTarget = ''
+  form.title = ''
+  form.subtitle = ''
+  form.buttonText = ''
   form.sort = 0
   form.status = 1
 }
 
+// 功能：打开create
 const openCreate = () => {
   editingId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
+// 功能：打开edit
 const openEdit = (row) => {
   editingId.value = row.id
   form.imageUrl = row.imageUrl
   form.linkType = row.linkType
   form.linkTarget = row.linkTarget
+  form.title = row.title
+  form.subtitle = row.subtitle
+  form.buttonText = row.buttonText
   form.sort = row.sort
   form.status = row.status
   dialogVisible.value = true
 }
 
+// 功能：保存轮播图
 const saveBanner = async () => {
   if (!form.imageUrl || !form.linkTarget) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -221,6 +250,9 @@ const saveBanner = async () => {
       imageUrl: form.imageUrl,
       linkType: form.linkType,
       linkTarget: form.linkTarget,
+      title: form.title,
+      subtitle: form.subtitle,
+      buttonText: form.buttonText,
       sort: form.sort,
       status: form.status,
     }
@@ -241,6 +273,7 @@ const saveBanner = async () => {
   }
 }
 
+// 功能：处理上传
 const handleUpload = async (options) => {
   try {
     const res = await uploadAdminFile(options.file)
@@ -255,6 +288,7 @@ const handleUpload = async (options) => {
   }
 }
 
+// 功能：移除数据
 const remove = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.deleteConfirm'), 'Confirm', { type: 'warning' })

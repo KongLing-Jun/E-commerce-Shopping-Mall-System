@@ -13,11 +13,13 @@ const route = useRoute()
 const { isLoggedIn, isAdmin, refreshAuth } = useAuth()
 const { locale, setLocale, t, availableLocales } = useI18n()
 const { theme, applyTheme, initTheme } = useTheme()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 const menuTree = ref([])
 const storeSearch = ref('')
 
+// 功能：扁平化菜单树
 const flattenMenus = (menus, result = []) => {
   if (!Array.isArray(menus)) {
     return result
@@ -48,6 +50,7 @@ const menuLabelMap = {
   AdminStats: 'nav.adminStats',
 }
 
+// 功能：处理resolve菜单label
 const resolveMenuLabel = (menu) => {
   const key = menuLabelMap[menu.component]
   return key ? t(key) : menu.name
@@ -59,6 +62,7 @@ const isAdminArea = computed(() => route.path.startsWith('/admin'))
 const storeNavItems = computed(() => [
   { path: '/', label: t('nav.home') },
   { path: '/products', label: t('nav.products') },
+  { path: '/categories', label: t('home.categories') },
   { path: '/orders', label: t('nav.orders') },
   { path: '/cart', label: t('nav.cart') },
 ])
@@ -67,6 +71,7 @@ const storeNavItemsForRoute = computed(() => {
   return storeNavItems.value
 })
 
+// 功能：加载菜单
 const loadMenus = async () => {
   if (!isLoggedIn.value) {
     menuTree.value = []
@@ -120,6 +125,7 @@ onMounted(() => {
   }
 })
 
+// 功能：处理顶部搜索
 const handleStoreSearch = () => {
   // 统一跳转到商品列表页并携带关键字查询参数。
   if (!storeSearch.value) {
@@ -129,6 +135,7 @@ const handleStoreSearch = () => {
   router.push({ path: '/products', query: { keyword: storeSearch.value } })
 }
 
+// 功能：退出登录数据
 const logout = async () => {
   try {
     await logoutApi()

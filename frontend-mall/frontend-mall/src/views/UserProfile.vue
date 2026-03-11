@@ -216,6 +216,7 @@ const passwordForm = reactive({
   confirmPassword: '',
 })
 
+// 功能：获取收藏fromstorage
 const getFavoritesFromStorage = () => {
   try {
     const stored = localStorage.getItem('userFavorites')
@@ -225,10 +226,12 @@ const getFavoritesFromStorage = () => {
   }
 }
 
+// 功能：保存收藏tostorage
 const saveFavoritesToStorage = (favoritesList) => {
   localStorage.setItem('userFavorites', JSON.stringify(favoritesList))
 }
 
+// 功能：获取足迹fromstorage
 const getFootprintsFromStorage = () => {
   try {
     const stored = localStorage.getItem('userFootprints')
@@ -238,10 +241,12 @@ const getFootprintsFromStorage = () => {
   }
 }
 
+// 功能：保存足迹tostorage
 const saveFootprintsToStorage = (footprintsList) => {
   localStorage.setItem('userFootprints', JSON.stringify(footprintsList))
 }
 
+// 功能：加载个人信息
 const loadProfile = async () => {
   try {
     const res = await fetchUserProfile()
@@ -262,6 +267,7 @@ const loadProfile = async () => {
   }
 }
 
+// 功能：保存个人信息
 const saveProfile = async () => {
   if (!profile.username || !profile.phone) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -294,6 +300,7 @@ const saveProfile = async () => {
   }
 }
 
+// 功能：加载汇总
 const loadSummary = async () => {
   try {
     const params = { page: 0, size: 100 }
@@ -317,6 +324,7 @@ const loadSummary = async () => {
   summary.footprintCount = footprintList.length
 }
 
+// 功能：加载收藏
 const loadFavorites = async () => {
   try {
     favorites.value = getFavoritesFromStorage()
@@ -327,6 +335,7 @@ const loadFavorites = async () => {
   }
 }
 
+// 功能：加载足迹
 const loadFootprints = async () => {
   try {
     footprints.value = getFootprintsFromStorage()
@@ -337,6 +346,7 @@ const loadFootprints = async () => {
   }
 }
 
+// 功能：移除足迹
 const removeFootprint = async (productId) => {
   try {
     const footprintList = getFootprintsFromStorage()
@@ -351,6 +361,7 @@ const removeFootprint = async (productId) => {
   }
 }
 
+// 功能：移除收藏
 const removeFavorite = async (productId) => {
   try {
     const favList = getFavoritesFromStorage()
@@ -365,10 +376,12 @@ const removeFavorite = async (productId) => {
   }
 }
 
+// 功能：跳转到商品
 const goToProduct = (productId) => {
   router.push(`/product/${productId}`)
 }
 
+// 功能：修改密码
 const changePassword = async () => {
   if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
     ElMessage.warning(t('auth.completeInfo'))

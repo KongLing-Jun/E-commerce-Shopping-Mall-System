@@ -19,6 +19,7 @@ public class AddressServiceImpl implements AddressService {
     private AddressRepository addressRepository;
 
     @Override
+    // 功能：查询地址
     public List<Address> listAddresses(Long userId) {
         return addressRepository.selectList(new LambdaQueryWrapper<Address>()
                 .eq(Address::getUserId, userId)
@@ -26,6 +27,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    // 功能：新增地址
     public void addAddress(Long userId, AddressRequest request) {
         Address address = new Address();
         address.setUserId(userId);
@@ -37,12 +39,14 @@ public class AddressServiceImpl implements AddressService {
         address.setDetail(request.getDetail());
         address.setIsDefault(request.getIsDefault() == null ? 0 : request.getIsDefault());
         if (address.getIsDefault() == 1) {
+            // 功能：处理cleardefault
             clearDefault(userId);
         }
         addressRepository.insert(address);
     }
 
     @Override
+    // 功能：更新地址
     public void updateAddress(Long userId, Long addressId, AddressRequest request) {
         Address address = addressRepository.selectById(addressId);
         if (address == null || !userId.equals(address.getUserId())) {
@@ -56,12 +60,14 @@ public class AddressServiceImpl implements AddressService {
         address.setDetail(request.getDetail());
         address.setIsDefault(request.getIsDefault() == null ? address.getIsDefault() : request.getIsDefault());
         if (address.getIsDefault() == 1) {
+            // 功能：处理cleardefault
             clearDefault(userId);
         }
         addressRepository.updateById(address);
     }
 
     @Override
+    // 功能：删除地址
     public void deleteAddress(Long userId, Long addressId) {
         Address address = addressRepository.selectById(addressId);
         if (address == null || !userId.equals(address.getUserId())) {
@@ -70,6 +76,7 @@ public class AddressServiceImpl implements AddressService {
         addressRepository.deleteById(addressId);
     }
 
+    // 功能：处理cleardefault
     private void clearDefault(Long userId) {
         addressRepository.update(new LambdaUpdateWrapper<Address>()
                 .set(Address::getIsDefault, 0)

@@ -31,11 +31,13 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
+    // 功能：处理用户个人信息serviceimpl
     public UserProfileServiceImpl(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
+    // 功能：获取个人信息
     public UserProfileView getProfile() {
         User user = requireUser();
         Role role = roleRepository.selectById(user.getRoleId());
@@ -43,6 +45,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
+    // 功能：更新个人信息
     public UserProfileView updateProfile(UserProfileUpdateRequest request) {
         User user = requireUser();
         String username = request.getUsername() == null ? "" : request.getUsername().trim();
@@ -80,6 +83,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
+    // 功能：修改密码
     public void changePassword(UserPasswordChangeRequest request) {
         User user = requireUser();
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
@@ -92,6 +96,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         userRepository.updateById(user);
     }
 
+    // 功能：处理require用户
     private User requireUser() {
         Long userId = AuthContext.getUserId();
         if (userId == null) {
@@ -107,6 +112,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         return user;
     }
 
+    // 功能：处理toview
     private UserProfileView toView(User user, Role role, String token) {
         UserProfileView view = new UserProfileView();
         view.setId(user.getId());

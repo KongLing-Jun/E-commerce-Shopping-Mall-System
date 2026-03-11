@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="space-y-6">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -120,6 +120,13 @@
             >
               {{ t('admin.ship') }}
             </el-button>
+            <el-button
+              size="small"
+              v-permission="'admin:orders:ship'"
+              @click="openTracking(row)"
+            >
+              {{ dual('物流轨迹', 'Tracking') }}
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -154,13 +161,53 @@
         <el-button type="primary" :loading="shipping" @click="submitShip">{{ t('admin.ship') }}</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="trackingDialogVisible" :title="dual('物流轨迹', 'Tracking Event')" width="520px">
+      <el-form :model="trackingForm" label-position="top">
+        <el-form-item label="Order No">
+          <el-input v-model="trackingForm.orderNo" disabled />
+        </el-form-item>
+        <el-form-item :label="dual('事件标题', 'Title')">
+          <el-input v-model="trackingForm.title" />
+        </el-form-item>
+        <el-form-item :label="dual('事件描述', 'Description')">
+          <el-input v-model="trackingForm.description" type="textarea" />
+        </el-form-item>
+        <el-form-item :label="dual('地点', 'Location')">
+          <el-input v-model="trackingForm.location" />
+        </el-form-item>
+        <el-form-item :label="dual('事件时间', 'Event Time')">
+          <el-date-picker
+            v-model="trackingForm.eventTime"
+            type="datetime"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            class="w-full"
+            placeholder="2026-03-11T10:30:00"
+          />
+        </el-form-item>
+        <el-form-item :label="t('common.status')">
+          <el-select v-model="trackingForm.status" class="w-full" clearable>
+            <el-option :label="t('orderList.pending')" :value="0" />
+            <el-option :label="t('orderList.paid')" :value="1" />
+            <el-option :label="t('orderList.shipped')" :value="2" />
+            <el-option :label="t('orderList.completed')" :value="3" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="trackingDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="trackingSaving" @click="submitTracking">
+          {{ t('common.save') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </section>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { exportAdminOrders, fetchAdminOrders, shipAdminOrder } from '@/api/admin/orders.js'
+import { addAdminOrderTracking, exportAdminOrders, fetchAdminOrders, shipAdminOrder } from '@/api/admin/orders.js'
 import { fetchAdminStatsOverview } from '@/api/admin/stats.js'
 import { fetchAdminNotices, readAdminNotice } from '@/api/admin/notices.js'
 import { useI18n } from '@/i18n/index.js'
@@ -168,6 +215,7 @@ import { useI18n } from '@/i18n/index.js'
 const loading = ref(false)
 const exporting = ref(false)
 const shipping = ref(false)
+const trackingSaving = ref(false)
 const orders = ref([])
 const notices = ref([])
 const total = ref(0)
@@ -176,7 +224,9 @@ const size = ref(10)
 const searchKeyword = ref('')
 const totalSales = ref(0)
 const todayOrders = ref(0)
-const { t } = useI18n()
+const { t, locale } = useI18n()
+// 功能：处理中英文切换展示。
+const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 const filters = reactive({
   orderNo: '',
@@ -188,6 +238,15 @@ const shipForm = reactive({
   orderNo: '',
   expressNo: '',
   expressCompany: '',
+})
+const trackingDialogVisible = ref(false)
+const trackingForm = reactive({
+  orderNo: '',
+  title: '',
+  description: '',
+  location: '',
+  eventTime: '',
+  status: null,
 })
 
 // 后台订单状态筛选选项。
@@ -257,6 +316,7 @@ const fetchNotices = async () => {
   }
 }
 
+// 功能：处理mark通知read
 const markNoticeRead = async (notice) => {
   try {
     const res = await readAdminNotice(notice.id)
@@ -320,6 +380,7 @@ const openShip = (row) => {
   shipDialogVisible.value = true
 }
 
+// 功能：处理submit发货
 const submitShip = async () => {
   shipping.value = true
   try {
@@ -341,6 +402,46 @@ const submitShip = async () => {
     }
   } finally {
     shipping.value = false
+  }
+}
+
+// 打开物流轨迹录入弹窗。
+const openTracking = (row) => {
+  trackingForm.orderNo = row.orderNo
+  trackingForm.title = ''
+  trackingForm.description = ''
+  trackingForm.location = ''
+  trackingForm.eventTime = ''
+  trackingForm.status = row.status
+  trackingDialogVisible.value = true
+}
+
+// 提交物流轨迹事件。
+const submitTracking = async () => {
+  if (!trackingForm.title) {
+    ElMessage.warning(dual('请输入事件标题', 'Please input event title'))
+    return
+  }
+  trackingSaving.value = true
+  try {
+    const payload = {
+      title: trackingForm.title,
+      description: trackingForm.description,
+      location: trackingForm.location,
+      eventTime: trackingForm.eventTime || undefined,
+      status: trackingForm.status === null ? undefined : trackingForm.status,
+    }
+    const res = await addAdminOrderTracking(trackingForm.orderNo, payload)
+    if (res.code === 200) {
+      ElMessage.success(t('common.save'))
+      trackingDialogVisible.value = false
+    } else {
+      ElMessage.error(res.message || t('common.empty'))
+    }
+  } catch (error) {
+    ElMessage.error(t('common.empty'))
+  } finally {
+    trackingSaving.value = false
   }
 }
 

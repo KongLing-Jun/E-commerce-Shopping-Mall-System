@@ -17,6 +17,7 @@ public interface OrderRepository extends BaseMapper<Order> {
             WHERE created_at >= #{start}
               AND created_at < #{end}
             """)
+    // 功能：处理数量bycreatedatbetween
     Long countByCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Select("""
@@ -24,5 +25,6 @@ public interface OrderRepository extends BaseMapper<Order> {
             FROM `order`
             WHERE status >= 1
             """)
+    // 功能：处理sumpaid金额
     BigDecimal sumPaidAmount();
 }

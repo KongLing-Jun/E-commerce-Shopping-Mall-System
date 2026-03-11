@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="grid gap-8 xl:grid-cols-[1fr_360px]">
     <section class="space-y-6">
       <header>
@@ -121,6 +121,7 @@ const paymentForm = reactive({
   saveCard: false,
 })
 const { t, locale } = useI18n()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 // 统一价格格式化，避免金额显示精度不一致。

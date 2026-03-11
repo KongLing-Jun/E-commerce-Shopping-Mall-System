@@ -4,88 +4,108 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thinking.backendmall.service.CacheService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class CacheServiceImpl implements CacheService {
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    private static class CacheEntry {
+        private final String value;
+        private final long expiresAt;
+
+        private CacheEntry(String value, long expiresAt) {
+            this.value = value;
+            this.expiresAt = expiresAt;
+        }
+    }
+
+    private final Map<String, CacheEntry> localCache = new ConcurrentHashMap<>();
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Override
+    // 功能：获取缓存数据（内存实现）。
     public <T> T get(String key, Class<T> clazz) {
         try {
-            String value = redisTemplate.opsForValue().get(key);
-            if (value == null) {
+            CacheEntry entry = localCache.get(key);
+            if (entry == null) {
                 return null;
             }
-            return objectMapper.readValue(value, clazz);
+            if (isExpired(entry)) {
+                localCache.remove(key);
+                return null;
+            }
+            return objectMapper.readValue(entry.value, clazz);
         } catch (Exception ex) {
             return null;
         }
     }
 
     @Override
+    // 功能：获取缓存数据（内存实现）。
     public <T> T get(String key, TypeReference<T> typeReference) {
         try {
-            String value = redisTemplate.opsForValue().get(key);
-            if (value == null) {
+            CacheEntry entry = localCache.get(key);
+            if (entry == null) {
                 return null;
             }
-            return objectMapper.readValue(value, typeReference);
+            if (isExpired(entry)) {
+                localCache.remove(key);
+                return null;
+            }
+            return objectMapper.readValue(entry.value, typeReference);
         } catch (Exception ex) {
             return null;
         }
     }
 
     @Override
+    // 功能：写入缓存数据（内存实现）。
     public void set(String key, Object value, Duration ttl) {
-        if (value == null) {
+        if (value == null || key == null || key.isBlank()) {
             return;
         }
         try {
             String json = objectMapper.writeValueAsString(value);
-            if (ttl == null || ttl.isZero() || ttl.isNegative()) {
-                redisTemplate.opsForValue().set(key, json);
-            } else {
-                redisTemplate.opsForValue().set(key, json, ttl);
-            }
+            long expiresAt = ttl == null || ttl.isZero() || ttl.isNegative()
+                    ? Long.MAX_VALUE
+                    : System.currentTimeMillis() + ttl.toMillis();
+            localCache.put(key, new CacheEntry(json, expiresAt));
         } catch (Exception ex) {
             // Ignore cache write failures.
         }
     }
 
     @Override
+    // 功能：删除指定缓存数据。
     public void delete(String key) {
         if (key == null || key.isBlank()) {
             return;
         }
-        try {
-            redisTemplate.delete(key);
-        } catch (Exception ex) {
-            // Ignore cache delete failures.
-        }
+        localCache.remove(key);
     }
 
     @Override
+    // 功能：按前缀批量删除缓存数据。
     public void deleteByPrefix(String prefix) {
         if (prefix == null || prefix.isBlank()) {
             return;
         }
-        try {
-            Set<String> keys = redisTemplate.keys(prefix + "*");
-            if (keys != null && !keys.isEmpty()) {
-                redisTemplate.delete(keys);
-            }
-        } catch (Exception ex) {
-            // Ignore cache delete failures.
-        }
+        Set<String> keys = localCache.keySet().stream()
+                .filter(key -> key.startsWith(prefix))
+                .collect(Collectors.toSet());
+        keys.forEach(localCache::remove);
+    }
+
+    // 功能：判断缓存是否过期。
+    private boolean isExpired(CacheEntry entry) {
+        return entry.expiresAt != Long.MAX_VALUE && entry.expiresAt <= System.currentTimeMillis();
     }
 }

@@ -23,6 +23,7 @@ public class AdminStatsServiceImpl implements AdminStatsService {
     private OrderItemRepository orderItemRepository;
 
     @Override
+    // 功能：获取概览
     public StatsOverview getOverview() {
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();

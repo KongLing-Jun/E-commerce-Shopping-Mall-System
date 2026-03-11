@@ -144,10 +144,12 @@ const editingBuiltIn = computed(() => {
   return isBuiltIn({ roleKey: form.roleKey })
 })
 
+// 功能：判断builtin
 const isBuiltIn = (row) => {
   return ['ADMIN', 'USER'].includes((row.roleKey || '').toUpperCase())
 }
 
+// 功能：获取角色
 const fetchRoles = async () => {
   loading.value = true
   try {
@@ -170,34 +172,40 @@ const fetchRoles = async () => {
   }
 }
 
+// 功能：重置filters
 const resetFilters = () => {
   filters.keyword = ''
   page.value = 0
   fetchRoles()
 }
 
+// 功能：修改分页
 const changePage = (nextPage) => {
   page.value = nextPage - 1
   fetchRoles()
 }
 
+// 功能：修改分页大小
 const changeSize = (nextSize) => {
   size.value = nextSize
   page.value = 0
   fetchRoles()
 }
 
+// 功能：重置form
 const resetForm = () => {
   form.roleKey = ''
   form.roleName = ''
 }
 
+// 功能：打开create
 const openCreate = () => {
   editingId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
+// 功能：打开edit
 const openEdit = (row) => {
   editingId.value = row.id
   form.roleKey = row.roleKey
@@ -205,6 +213,7 @@ const openEdit = (row) => {
   dialogVisible.value = true
 }
 
+// 功能：保存角色
 const saveRole = async () => {
   if (!form.roleKey || !form.roleName) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -233,6 +242,7 @@ const saveRole = async () => {
   }
 }
 
+// 功能：移除角色
 const removeRole = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.deleteRoleConfirm'), 'Confirm', { type: 'warning' })
@@ -250,6 +260,7 @@ const removeRole = async (row) => {
   }
 }
 
+// 功能：加载菜单tree
 const loadMenuTree = async () => {
   if (menuTree.value.length) {
     return
@@ -269,6 +280,7 @@ const loadMenuTree = async () => {
   }
 }
 
+// 功能：打开菜单
 const openMenus = async (row) => {
   menuRoleId.value = row.id
   menuDialogVisible.value = true
@@ -291,6 +303,7 @@ const openMenus = async (row) => {
   }
 }
 
+// 功能：保存角色菜单
 const saveRoleMenus = async () => {
   const checked = menuTreeRef.value?.getCheckedKeys() || []
   const halfChecked = menuTreeRef.value?.getHalfCheckedKeys() || []

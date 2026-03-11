@@ -11,7 +11,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,9 +35,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private MenuRepository menuRepository;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private AuthMemoryStore authMemoryStore;
 
     @Override
+    // 功能：处理 JWT 认证并写入安全上下文。
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String header = request.getHeader("Authorization");
             if (header != null && header.startsWith("Bearer ")) {
                 String token = header.substring(7);
-                if (!isBlacklisted(token)
+                if (!authMemoryStore.isTokenBlacklisted(token)
                         && jwtUtil.validateToken(token)
                         && SecurityContextHolder.getContext().getAuthentication() == null) {
                     Claims claims = jwtUtil.getClaimsFromToken(token);
@@ -80,14 +80,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             AuthContext.clear();
-        }
-    }
-
-    private boolean isBlacklisted(String token) {
-        try {
-            return Boolean.TRUE.equals(redisTemplate.hasKey("jwt:blacklist:" + token));
-        } catch (Exception ex) {
-            return false;
         }
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 @Component("permissionService")
 public class PermissionService {
 
+    // 功能：判断是否拥有权限
     public boolean hasPerm(String perm) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getAuthorities() == null) {

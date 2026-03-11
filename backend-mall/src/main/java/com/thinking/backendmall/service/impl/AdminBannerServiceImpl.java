@@ -23,6 +23,7 @@ public class AdminBannerServiceImpl implements AdminBannerService {
     private CacheService cacheService;
 
     @Override
+    // 功能：查询轮播图
     public PageResult<Banner> listBanners(Integer status, int page, int size) {
         Page<Banner> pageResult = new Page<>(page + 1L, size);
         LambdaQueryWrapper<Banner> wrapper = new LambdaQueryWrapper<>();
@@ -36,11 +37,15 @@ public class AdminBannerServiceImpl implements AdminBannerService {
     }
 
     @Override
+    // 功能：创建轮播图
     public Banner createBanner(AdminBannerRequest request) {
         Banner banner = new Banner();
         banner.setImageUrl(request.getImageUrl());
         banner.setLinkType(request.getLinkType());
         banner.setLinkTarget(request.getLinkTarget());
+        banner.setTitle(request.getTitle());
+        banner.setSubtitle(request.getSubtitle());
+        banner.setButtonText(request.getButtonText());
         banner.setSort(request.getSort());
         banner.setStatus(request.getStatus());
         bannerRepository.insert(banner);
@@ -49,6 +54,7 @@ public class AdminBannerServiceImpl implements AdminBannerService {
     }
 
     @Override
+    // 功能：更新轮播图
     public Banner updateBanner(Long id, AdminBannerRequest request) {
         Banner banner = bannerRepository.selectById(id);
         if (banner == null) {
@@ -57,6 +63,9 @@ public class AdminBannerServiceImpl implements AdminBannerService {
         banner.setImageUrl(request.getImageUrl());
         banner.setLinkType(request.getLinkType());
         banner.setLinkTarget(request.getLinkTarget());
+        banner.setTitle(request.getTitle());
+        banner.setSubtitle(request.getSubtitle());
+        banner.setButtonText(request.getButtonText());
         banner.setSort(request.getSort());
         banner.setStatus(request.getStatus());
         bannerRepository.updateById(banner);
@@ -65,6 +74,7 @@ public class AdminBannerServiceImpl implements AdminBannerService {
     }
 
     @Override
+    // 功能：删除轮播图
     public void deleteBanner(Long id) {
         Banner banner = bannerRepository.selectById(id);
         if (banner == null) {

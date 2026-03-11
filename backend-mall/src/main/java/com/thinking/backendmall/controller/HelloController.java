@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
 
     @GetMapping("/api/hello")
+    // 功能：处理hello
     public Result<String> hello() {
         return Result.success("hello");
     }

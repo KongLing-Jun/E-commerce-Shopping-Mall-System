@@ -22,6 +22,7 @@ public class AdminNoticeController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:orders:list')")
+    // 功能：查询数据
     public Result<PageResult<MerchantNoticeView>> list(@RequestParam(defaultValue = "0") int page,
                                                        @RequestParam(defaultValue = "10") int size) {
         return Result.success(merchantNoticeService.listNotices(page, size));
@@ -29,6 +30,7 @@ public class AdminNoticeController {
 
     @PutMapping("/{id}/read")
     @PreAuthorize("@permissionService.hasPerm('admin:orders:list')")
+    // 功能：处理markasread
     public Result<Void> markAsRead(@PathVariable Long id) {
         merchantNoticeService.markAsRead(id);
         return Result.success();

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6 animate-fade-up">
     <el-card class="border-0 bg-[var(--surface-strong)] shadow-soft">
       <template #header>
@@ -89,6 +89,7 @@ const form = ref({
 })
 const { t } = useI18n()
 
+// 功能：加载地址
 const loadAddresses = async () => {
   try {
     const res = await getAddresses()
@@ -102,6 +103,7 @@ const loadAddresses = async () => {
   }
 }
 
+// 功能：打开dialog
 const openDialog = (row) => {
   if (row) {
     editingId.value = row.id
@@ -121,6 +123,7 @@ const openDialog = (row) => {
   dialogVisible.value = true
 }
 
+// 功能：保存地址
 const saveAddress = async () => {
   try {
     let res
@@ -141,6 +144,7 @@ const saveAddress = async () => {
   }
 }
 
+// 功能：移除地址
 const removeAddress = async (row) => {
   try {
     const res = await deleteAddress(row.id)

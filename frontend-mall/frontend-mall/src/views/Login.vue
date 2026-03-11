@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
     <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center"></div>
     <div class="absolute inset-0 bg-slate-900/45 backdrop-blur-[3px]"></div>
@@ -79,10 +79,12 @@ onMounted(() => {
   }
 })
 
+// 功能：处理forgot密码
 const handleForgotPassword = () => {
   ElMessage.info(t('auth.contactAdminReset'))
 }
 
+// 功能：处理login
 const handleLogin = async () => {
   if (!form.value.username || !form.value.password) {
     ElMessage.warning(t('auth.completeInfo'))

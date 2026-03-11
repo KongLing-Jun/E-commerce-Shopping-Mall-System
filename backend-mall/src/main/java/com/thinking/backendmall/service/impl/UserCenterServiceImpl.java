@@ -40,6 +40,7 @@ public class UserCenterServiceImpl implements UserCenterService {
     private UserFootprintRepository userFootprintRepository;
 
     @Override
+    // 功能：获取汇总
     public UserSummaryView getSummary() {
         Long userId = requireUserId();
         UserSummaryView summary = new UserSummaryView();
@@ -54,6 +55,7 @@ public class UserCenterServiceImpl implements UserCenterService {
     }
 
     @Override
+    // 功能：查询收藏
     public List<UserFavoriteView> listFavorites() {
         Long userId = requireUserId();
         List<UserFavorite> favorites = userFavoriteRepository.selectList(new LambdaQueryWrapper<UserFavorite>()
@@ -63,6 +65,7 @@ public class UserCenterServiceImpl implements UserCenterService {
     }
 
     @Override
+    // 功能：新增收藏
     public void addFavorite(Long productId) {
         Long userId = requireUserId();
         if (productId == null) {
@@ -86,6 +89,7 @@ public class UserCenterServiceImpl implements UserCenterService {
     }
 
     @Override
+    // 功能：移除收藏
     public void removeFavorite(Long productId) {
         Long userId = requireUserId();
         if (productId == null) {
@@ -97,6 +101,7 @@ public class UserCenterServiceImpl implements UserCenterService {
     }
 
     @Override
+    // 功能：查询足迹
     public List<UserFootprintView> listFootprints() {
         Long userId = requireUserId();
         List<UserFootprint> footprints = userFootprintRepository.selectList(new LambdaQueryWrapper<UserFootprint>()
@@ -106,6 +111,7 @@ public class UserCenterServiceImpl implements UserCenterService {
     }
 
     @Override
+    // 功能：移除足迹
     public void removeFootprint(Long productId) {
         Long userId = requireUserId();
         if (productId == null) {
@@ -117,6 +123,7 @@ public class UserCenterServiceImpl implements UserCenterService {
     }
 
     @Override
+    // 功能：记录足迹
     public void recordFootprint(Long productId) {
         Long userId = AuthContext.getUserId();
         if (userId == null || productId == null) {
@@ -137,6 +144,7 @@ public class UserCenterServiceImpl implements UserCenterService {
         userFootprintRepository.insert(footprint);
     }
 
+    // 功能：获取并校验当前用户ID
     private Long requireUserId() {
         Long userId = AuthContext.getUserId();
         if (userId == null) {
@@ -145,6 +153,7 @@ public class UserCenterServiceImpl implements UserCenterService {
         return userId;
     }
 
+    // 功能：处理数量订单
     private long countOrders(Long userId, Integer status) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>().eq(Order::getUserId, userId);
         if (status != null) {
@@ -154,18 +163,21 @@ public class UserCenterServiceImpl implements UserCenterService {
         return count == null ? 0 : count;
     }
 
+    // 功能：处理数量收藏
     private long countFavorites(Long userId) {
         Long count = userFavoriteRepository.selectCount(new LambdaQueryWrapper<UserFavorite>()
                 .eq(UserFavorite::getUserId, userId));
         return count == null ? 0 : count;
     }
 
+    // 功能：处理数量足迹
     private long countFootprints(Long userId) {
         Long count = userFootprintRepository.selectCount(new LambdaQueryWrapper<UserFootprint>()
                 .eq(UserFootprint::getUserId, userId));
         return count == null ? 0 : count;
     }
 
+    // 功能：构建收藏views
     private List<UserFavoriteView> buildFavoriteViews(List<UserFavorite> favorites) {
         List<UserFavoriteView> views = new ArrayList<>();
         if (favorites == null || favorites.isEmpty()) {
@@ -191,6 +203,7 @@ public class UserCenterServiceImpl implements UserCenterService {
         return views;
     }
 
+    // 功能：构建足迹views
     private List<UserFootprintView> buildFootprintViews(List<UserFootprint> footprints) {
         List<UserFootprintView> views = new ArrayList<>();
         if (footprints == null || footprints.isEmpty()) {
@@ -216,6 +229,7 @@ public class UserCenterServiceImpl implements UserCenterService {
         return views;
     }
 
+    // 功能：加载商品map
     private Map<Long, Product> loadProductMap(List<Long> productIds) {
         Map<Long, Product> map = new HashMap<>();
         if (productIds == null || productIds.isEmpty()) {

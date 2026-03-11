@@ -1,5 +1,36 @@
-﻿﻿<template>
+﻿<template>
   <div class="space-y-10">
+    <section class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="text-3xl font-extrabold">{{ t('home.bannerTitle') }}</h3>
+          <p class="muted-text mt-1">{{ dual('最新促销与重点推荐', 'Latest promotions and highlights') }}</p>
+        </div>
+        <el-button text type="primary" @click="goToProducts()">{{ t('home.viewAll') }}</el-button>
+      </div>
+      <el-carousel v-if="banners.length" height="320px" class="mt-4" indicator-position="outside">
+        <el-carousel-item v-for="banner in banners" :key="banner.id">
+          <button type="button" class="relative h-full w-full overflow-hidden rounded-2xl" @click="handleBannerClick(banner)">
+            <img :src="banner.imageUrl" :alt="`banner-${banner.id}`" class="h-full w-full object-cover" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+            <div class="absolute bottom-6 left-6 max-w-[70%] text-white">
+              <h4 v-if="banner.title" class="text-2xl font-extrabold">{{ banner.title }}</h4>
+              <p v-if="banner.subtitle" class="mt-2 text-sm text-white/90">{{ banner.subtitle }}</p>
+              <el-button
+                v-if="banner.buttonText"
+                class="mt-4"
+                size="small"
+                type="primary"
+                @click.stop="handleBannerClick(banner)"
+              >
+                {{ banner.buttonText }}
+              </el-button>
+            </div>
+          </button>
+        </el-carousel-item>
+      </el-carousel>
+      <el-empty v-else :description="t('home.noBanners')" class="mt-4" />
+    </section>
     <section class="grid gap-4 lg:grid-cols-2">
       <article
         v-for="(hero, index) in heroCards"
@@ -21,6 +52,30 @@
       </article>
     </section>
 
+    <section class="space-y-4" v-if="categories.length">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-3xl font-extrabold">{{ t('home.categories') }}</h3>
+          <p class="muted-text mt-1">{{ t('home.categoryHint') }}</p>
+        </div>
+        <el-button text type="primary" @click="router.push('/categories')">{{ t('home.viewAll') }}</el-button>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <button
+          v-for="category in categories"
+          :key="category.id"
+          type="button"
+          class="flex items-center justify-between rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-4 text-left transition hover:-translate-y-1"
+          @click="goToProducts(category.id)"
+        >
+          <div>
+            <div class="text-lg font-bold">{{ category.name }}</div>
+            <div class="text-sm text-[var(--muted)]">{{ dual('点击查看商品', 'View products') }}</div>
+          </div>
+          <span class="chip">{{ dual('分类', 'Category') }}</span>
+        </button>
+      </div>
+    </section>
     <section class="space-y-4">
       <div class="flex items-center justify-between">
         <h3 class="text-4xl font-extrabold">{{ dual('热门浏览', 'Popular Picks') }}</h3>
@@ -102,6 +157,7 @@ const hotProducts = ref([])
 const promoProducts = ref([])
 const loading = ref(true)
 const { t, locale } = useI18n()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 const fallbackHeroImages = [
@@ -132,8 +188,28 @@ const heroCards = computed(() => {
   ]
 })
 
+// 功能：格式化价格
 const formatPrice = (value) => Number(value || 0).toFixed(2)
 
+// 功能：处理轮播图点击跳转。
+const handleBannerClick = (banner) => {
+  if (!banner) {
+    return
+  }
+  const type = String(banner.linkType || '').toUpperCase()
+  const target = banner.linkTarget
+  if (type === 'PRODUCT' && target) {
+    router.push(`/product/${target}`)
+    return
+  }
+  if (type === 'URL' && target) {
+    window.open(target, '_blank')
+    return
+  }
+  goToProducts()
+}
+
+// 功能：加载首页数据
 const loadHomeData = async () => {
   loading.value = true
   try {
@@ -159,10 +235,12 @@ const loadHomeData = async () => {
   }
 }
 
+// 功能：跳转到商品
 const goToProduct = (productId) => {
   router.push(`/product/${productId}`)
 }
 
+// 功能：跳转到商品
 const goToProducts = (categoryId) => {
   if (categoryId) {
     router.push({ path: '/products', query: { categoryId } })
@@ -173,3 +251,4 @@ const goToProducts = (categoryId) => {
 
 onMounted(loadHomeData)
 </script>
+

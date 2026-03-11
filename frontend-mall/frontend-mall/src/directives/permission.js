@@ -1,3 +1,4 @@
+// 功能：处理normalize
 const normalize = (value) => {
   if (!value) {
     return []
@@ -8,6 +9,7 @@ const normalize = (value) => {
   return [value]
 }
 
+// 功能：加载权限
 const loadPerms = () => {
   try {
     const raw = localStorage.getItem('perms')
@@ -18,6 +20,7 @@ const loadPerms = () => {
   }
 }
 
+// 功能：判断是否拥有权限
 const hasPermission = (required) => {
   const requiredPerms = normalize(required)
   if (requiredPerms.length === 0) {

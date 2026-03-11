@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="grid gap-8 xl:grid-cols-[1fr_380px]">
     <section class="space-y-4">
       <div class="flex items-end justify-between">
@@ -92,6 +92,7 @@ const cartItems = ref([])
 const coupon = ref('')
 const discountRate = ref(0)
 const { t, locale } = useI18n()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 // 统一价格格式化，避免模板里重复处理。

@@ -34,6 +34,7 @@ public class AdminProductServiceImpl implements AdminProductService {
     private CacheService cacheService;
 
     @Override
+    // 功能：查询商品
     public PageResult<Product> listProducts(String keyword, Long categoryId, String status, int page, int size) {
         Page<Product> pageResult = new Page<>(page + 1L, size);
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
@@ -53,6 +54,7 @@ public class AdminProductServiceImpl implements AdminProductService {
     }
 
     @Override
+    // 功能：创建商品
     public Product createProduct(AdminProductRequest request) {
         Product product = new Product();
         product.setCategoryId(request.getCategoryId());
@@ -65,12 +67,15 @@ public class AdminProductServiceImpl implements AdminProductService {
         product.setDetailHtml(HtmlSanitizer.sanitize(request.getDetailHtml()));
         product.setCreatedAt(LocalDateTime.now());
         productRepository.insert(product);
+        // 功能：保存商品图片
         saveProductImages(product.getId(), request.getCoverUrl(), request.getImageUrls());
+        // 功能：处理evict商品caches
         evictProductCaches();
         return product;
     }
 
     @Override
+    // 功能：更新商品
     public Product updateProduct(Long id, AdminProductRequest request) {
         Product existing = productRepository.selectById(id);
         if (existing == null) {
@@ -85,12 +90,15 @@ public class AdminProductServiceImpl implements AdminProductService {
         existing.setCoverUrl(request.getCoverUrl());
         existing.setDetailHtml(HtmlSanitizer.sanitize(request.getDetailHtml()));
         productRepository.updateById(existing);
+        // 功能：保存商品图片
         saveProductImages(existing.getId(), request.getCoverUrl(), request.getImageUrls());
+        // 功能：处理evict商品caches
         evictProductCaches();
         return existing;
     }
 
     @Override
+    // 功能：更新状态
     public void updateStatus(Long id, String status) {
         Product existing = productRepository.selectById(id);
         if (existing == null) {
@@ -98,10 +106,12 @@ public class AdminProductServiceImpl implements AdminProductService {
         }
         existing.setStatus(normalizeStatus(status, existing.getStatus()));
         productRepository.updateById(existing);
+        // 功能：处理evict商品caches
         evictProductCaches();
     }
 
     @Override
+    // 功能：删除商品
     public void deleteProduct(Long id) {
         Product existing = productRepository.selectById(id);
         if (existing == null) {
@@ -110,9 +120,11 @@ public class AdminProductServiceImpl implements AdminProductService {
         productImageRepository.delete(new LambdaQueryWrapper<ProductImage>()
                 .eq(ProductImage::getProductId, id));
         productRepository.deleteById(id);
+        // 功能：处理evict商品caches
         evictProductCaches();
     }
 
+    // 功能：保存商品图片
     private void saveProductImages(Long productId, String coverUrl, List<String> imageUrls) {
         productImageRepository.delete(new LambdaQueryWrapper<ProductImage>()
                 .eq(ProductImage::getProductId, productId));
@@ -140,6 +152,7 @@ public class AdminProductServiceImpl implements AdminProductService {
         }
     }
 
+    // 功能：处理normalize状态
     private String normalizeStatus(String status, String fallback) {
         if (status == null || status.isBlank()) {
             return fallback;
@@ -147,6 +160,7 @@ public class AdminProductServiceImpl implements AdminProductService {
         return status.trim().toUpperCase();
     }
 
+    // 功能：处理evict商品caches
     private void evictProductCaches() {
         cacheService.deleteByPrefix(CacheKeys.PRODUCT_DETAIL_PREFIX);
         cacheService.deleteByPrefix(CacheKeys.PRODUCT_SEARCH_PREFIX);

@@ -23,16 +23,19 @@ public class MenuController {
 
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
+    // 功能：查询我的菜单
     public Result<List<MenuTreeNode>> listMyMenus() {
         return Result.success(menuService.listMyMenus(requireRoleKey()));
     }
 
     @GetMapping("/perms")
     @PreAuthorize("isAuthenticated()")
+    // 功能：查询我的权限
     public Result<List<String>> listMyPerms() {
         return Result.success(menuService.listMyPerms(requireRoleKey()));
     }
 
+    // 功能：获取并校验当前角色标识
     private String requireRoleKey() {
         String roleKey = AuthContext.getRoleKey();
         if (roleKey == null) {

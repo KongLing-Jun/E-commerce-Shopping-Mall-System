@@ -23,6 +23,7 @@ public class AdminProductController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:products:list')")
+    // 功能：查询商品
     public Result<PageResult<Product>> listProducts(@RequestParam(required = false) String keyword,
                                                     @RequestParam(required = false) Long categoryId,
                                                     @RequestParam(required = false) String status,
@@ -33,18 +34,21 @@ public class AdminProductController {
 
     @PostMapping
     @PreAuthorize("@permissionService.hasPerm('admin:products:on')")
+    // 功能：创建商品
     public Result<Product> createProduct(@Valid @RequestBody AdminProductRequest request) {
         return Result.success(adminProductService.createProduct(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:products:on')")
+    // 功能：更新商品
     public Result<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody AdminProductRequest request) {
         return Result.success(adminProductService.updateProduct(id, request));
     }
 
     @PutMapping("/{id}/on")
     @PreAuthorize("@permissionService.hasPerm('admin:products:on')")
+    // 功能：启用商品
     public Result<Void> enableProduct(@PathVariable Long id) {
         adminProductService.updateStatus(id, "ON");
         operationLogService.record("PRODUCT_ON", "product:" + id, "status=ON");
@@ -53,6 +57,7 @@ public class AdminProductController {
 
     @PutMapping("/{id}/off")
     @PreAuthorize("@permissionService.hasPerm('admin:products:off')")
+    // 功能：禁用商品
     public Result<Void> disableProduct(@PathVariable Long id) {
         adminProductService.updateStatus(id, "OFF");
         operationLogService.record("PRODUCT_OFF", "product:" + id, "status=OFF");
@@ -61,6 +66,7 @@ public class AdminProductController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:products:delete')")
+    // 功能：删除商品
     public Result<Void> deleteProduct(@PathVariable Long id) {
         adminProductService.deleteProduct(id);
         operationLogService.record("PRODUCT_DELETE", "product:" + id, "deleted");

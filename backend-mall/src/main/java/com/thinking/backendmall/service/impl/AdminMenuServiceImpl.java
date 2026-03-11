@@ -27,6 +27,7 @@ public class AdminMenuServiceImpl implements AdminMenuService {
     private RoleMenuRepository roleMenuRepository;
 
     @Override
+    // 功能：查询菜单tree
     public List<MenuTreeNode> listMenuTree() {
         List<Menu> menus = menuRepository.selectList(new LambdaQueryWrapper<Menu>()
                 .orderByAsc(Menu::getSort)
@@ -35,6 +36,7 @@ public class AdminMenuServiceImpl implements AdminMenuService {
     }
 
     @Override
+    // 功能：创建菜单
     public void createMenu(MenuRequest request) {
         Menu menu = new Menu();
         menu.setParentId(request.getParentId());
@@ -49,6 +51,7 @@ public class AdminMenuServiceImpl implements AdminMenuService {
     }
 
     @Override
+    // 功能：更新菜单
     public void updateMenu(Long id, MenuRequest request) {
         Menu menu = menuRepository.selectById(id);
         if (menu == null) {
@@ -66,6 +69,7 @@ public class AdminMenuServiceImpl implements AdminMenuService {
     }
 
     @Override
+    // 功能：删除菜单
     public void deleteMenu(Long id) {
         Menu menu = menuRepository.selectById(id);
         if (menu == null) {
@@ -75,6 +79,7 @@ public class AdminMenuServiceImpl implements AdminMenuService {
         menuRepository.deleteById(id);
     }
 
+    // 功能：构建tree
     private List<MenuTreeNode> buildTree(List<Menu> menus) {
         Map<Long, MenuTreeNode> nodeMap = new HashMap<>();
         List<MenuTreeNode> roots = new ArrayList<>();
@@ -94,6 +99,7 @@ public class AdminMenuServiceImpl implements AdminMenuService {
         return roots;
     }
 
+    // 功能：处理tonode
     private MenuTreeNode toNode(Menu menu) {
         MenuTreeNode node = new MenuTreeNode();
         node.setId(menu.getId());

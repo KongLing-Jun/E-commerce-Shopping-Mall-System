@@ -17,6 +17,7 @@ public interface MenuRepository extends BaseMapper<Menu> {
               AND m.perm_code IS NOT NULL
               AND m.type = 'BUTTON'
             """)
+    // 功能：处理select权限codesby角色id
     List<String> selectPermCodesByRoleId(Long roleId);
 
     @Select("""
@@ -28,5 +29,6 @@ public interface MenuRepository extends BaseMapper<Menu> {
               AND (m.visible IS NULL OR m.visible = 1)
             ORDER BY m.sort ASC, m.id ASC
             """)
+    // 功能：处理select菜单by角色id
     List<Menu> selectMenusByRoleId(Long roleId);
 }

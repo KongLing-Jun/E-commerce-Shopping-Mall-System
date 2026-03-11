@@ -28,6 +28,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     private CacheService cacheService;
 
     @Override
+    // 功能：查询分类
     public PageResult<Category> listCategories(String keyword, Integer status, int page, int size) {
         Page<Category> pageResult = new Page<>(page + 1L, size);
         LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
@@ -44,6 +45,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     }
 
     @Override
+    // 功能：创建分类
     public Category createCategory(AdminCategoryRequest request) {
         Category category = new Category();
         category.setName(request.getName());
@@ -56,6 +58,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     }
 
     @Override
+    // 功能：更新分类
     public Category updateCategory(Long id, AdminCategoryRequest request) {
         Category category = categoryRepository.selectById(id);
         if (category == null) {
@@ -71,6 +74,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     }
 
     @Override
+    // 功能：更新状态
     public void updateStatus(Long id, Integer status) {
         Category category = categoryRepository.selectById(id);
         if (category == null) {
@@ -82,6 +86,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     }
 
     @Override
+    // 功能：删除分类
     public void deleteCategory(Long id) {
         Category category = categoryRepository.selectById(id);
         if (category == null) {
@@ -96,14 +101,17 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
         cacheService.delete(CacheKeys.HOME_CATEGORIES);
     }
 
+    // 功能：处理defaultparent
     private Long defaultParent(Long parentId) {
         return parentId == null ? 0L : parentId;
     }
 
+    // 功能：处理default排序
     private int defaultSort(Integer sort) {
         return sort == null ? 0 : sort;
     }
 
+    // 功能：处理resolve状态
     private int resolveStatus(Integer status, Integer fallback) {
         if (status != null) {
             return status;

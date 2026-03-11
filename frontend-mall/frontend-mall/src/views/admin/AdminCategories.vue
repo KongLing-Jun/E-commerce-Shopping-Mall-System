@@ -143,6 +143,7 @@ const form = reactive({
 
 const dialogTitle = computed(() => (editingId.value ? t('common.edit') : t('admin.newCategory')))
 
+// 功能：获取分类
 const fetchCategories = async () => {
   loading.value = true
   try {
@@ -166,6 +167,7 @@ const fetchCategories = async () => {
   }
 }
 
+// 功能：重置filters
 const resetFilters = () => {
   filters.keyword = ''
   filters.status = ''
@@ -173,17 +175,20 @@ const resetFilters = () => {
   fetchCategories()
 }
 
+// 功能：修改分页
 const changePage = (nextPage) => {
   page.value = nextPage - 1
   fetchCategories()
 }
 
+// 功能：修改分页大小
 const changeSize = (nextSize) => {
   size.value = nextSize
   page.value = 0
   fetchCategories()
 }
 
+// 功能：重置form
 const resetForm = () => {
   form.name = ''
   form.parentId = 0
@@ -191,12 +196,14 @@ const resetForm = () => {
   form.status = 1
 }
 
+// 功能：打开create
 const openCreate = () => {
   editingId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
+// 功能：打开edit
 const openEdit = (row) => {
   editingId.value = row.id
   form.name = row.name
@@ -206,6 +213,7 @@ const openEdit = (row) => {
   dialogVisible.value = true
 }
 
+// 功能：保存分类
 const saveCategory = async () => {
   if (!form.name) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -236,6 +244,7 @@ const saveCategory = async () => {
   }
 }
 
+// 功能：设置状态
 const setStatus = async (row, status) => {
   try {
     const res = status === 1
@@ -252,6 +261,7 @@ const setStatus = async (row, status) => {
   }
 }
 
+// 功能：移除分类
 const removeCategory = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.deleteConfirm'), 'Confirm', { type: 'warning' })

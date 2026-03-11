@@ -18,6 +18,7 @@ public class AdminStatsController {
 
     @GetMapping("/overview")
     @PreAuthorize("@permissionService.hasPerm('admin:stats:view')")
+    // 功能：处理概览
     public Result<StatsOverview> overview() {
         return Result.success(adminStatsService.getOverview());
     }

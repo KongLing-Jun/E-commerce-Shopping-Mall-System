@@ -2,6 +2,7 @@ package com.thinking.backendmall.controller.admin;
 
 import com.thinking.backendmall.common.PageResult;
 import com.thinking.backendmall.common.Result;
+import com.thinking.backendmall.dto.AdminOrderTrackingRequest;
 import com.thinking.backendmall.dto.AdminShipOrderRequest;
 import com.thinking.backendmall.service.AdminOrderService;
 import com.thinking.backendmall.service.OperationLogService;
@@ -25,6 +26,7 @@ public class AdminOrderController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:orders:list')")
+    // 功能：分页查询订单列表。
     public Result<PageResult<AdminOrderView>> listOrders(@RequestParam(required = false) String orderNo,
                                                          @RequestParam(required = false) Long userId,
                                                          @RequestParam(required = false) Integer status,
@@ -35,6 +37,7 @@ public class AdminOrderController {
 
     @PostMapping("/{orderNo}/ship")
     @PreAuthorize("@permissionService.hasPerm('admin:orders:ship')")
+    // 功能：发货订单。
     public Result<Void> shipOrder(@PathVariable String orderNo,
                                   @RequestBody(required = false) AdminShipOrderRequest request) {
         String expressNo = request == null ? null : request.getExpressNo();
@@ -45,8 +48,20 @@ public class AdminOrderController {
         return Result.success();
     }
 
+    @PostMapping("/{orderNo}/tracking")
+    @PreAuthorize("@permissionService.hasPerm('admin:orders:ship')")
+    // 功能：新增订单物流轨迹记录。
+    public Result<Void> addTracking(@PathVariable String orderNo,
+                                    @RequestBody(required = false) AdminOrderTrackingRequest request) {
+        adminOrderService.addTrackingEvent(orderNo, request);
+        operationLogService.record("ORDER_TRACKING_ADD", "order:" + orderNo,
+                "tracking title=" + (request == null ? null : request.getTitle()));
+        return Result.success();
+    }
+
     @GetMapping("/export")
     @PreAuthorize("@permissionService.hasPerm('admin:orders:export')")
+    // 功能：导出订单。
     public void exportOrders(@RequestParam(required = false) String orderNo,
                              @RequestParam(required = false) Long userId,
                              @RequestParam(required = false) Integer status,

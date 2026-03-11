@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="grid gap-8 xl:grid-cols-[1fr_360px]">
     <section class="space-y-6">
       <header>
@@ -95,6 +95,7 @@ import { useI18n } from '@/i18n/index.js'
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 const order = ref(null)
@@ -113,13 +114,16 @@ const paymentForm = reactive({
 const orderNo = computed(() => route.params.orderNo)
 const orderItems = computed(() => order.value?.items || [])
 
+// 功能：格式化价格
 const formatPrice = (value) => Number(value || 0).toFixed(2)
+// 功能：格式化日期
 const formatDate = (value) => {
   if (!value) return '--'
   const date = new Date(value)
   return date.toLocaleDateString()
 }
 
+// 功能：订单状态文本映射
 const statusText = (status) => {
   if (status === 0) return t('orderList.pending')
   if (status === 1) return t('orderList.paid')
@@ -128,6 +132,7 @@ const statusText = (status) => {
   return t('common.status')
 }
 
+// 功能：加载订单
 const loadOrder = async () => {
   if (!orderNo.value) {
     errorText.value = dual('订单号无效', 'Invalid order number')
@@ -149,6 +154,7 @@ const loadOrder = async () => {
   }
 }
 
+// 功能：支付now
 const payNow = async () => {
   if (!order.value) return
   if (order.value.status !== 0) {

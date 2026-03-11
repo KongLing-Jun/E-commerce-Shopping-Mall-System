@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
+    // 功能：处理mallopenapi
     public OpenAPI mallOpenApi() {
         return new OpenAPI()
                 .info(new Info()

@@ -31,6 +31,7 @@ public class ProductController {
     private UserCenterService userCenterService;
 
     @GetMapping
+    // 功能：处理搜索商品
     public Result<PageResult<Product>> searchProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
@@ -41,6 +42,7 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
+    // 功能：获取商品
     public Result<ProductDetailView> getProduct(@PathVariable Long productId) {
         Long userId = AuthContext.getUserId();
         ProductDetailView productDetail = productService.getProductById(productId);

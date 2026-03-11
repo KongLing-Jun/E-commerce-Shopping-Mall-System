@@ -23,6 +23,7 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
+    // 功能：处理securityfilterchain
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwtAuthenticationFilter jwtAuthenticationFilter,
                                                    RestAuthenticationEntryPoint restAuthenticationEntryPoint,
@@ -42,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/home/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers("/error")
                         .permitAll()
                         .requestMatchers("/uploads/**").permitAll()
@@ -53,11 +55,13 @@ public class SecurityConfig {
     }
 
     @Bean
+    // 功能：处理密码encoder
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
+    // 功能：处理corsconfigurationsource
     public CorsConfigurationSource corsConfigurationSource() {
         return (HttpServletRequest request) -> {
             CorsConfiguration configuration = new CorsConfiguration();

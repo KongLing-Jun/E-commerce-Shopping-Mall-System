@@ -19,6 +19,7 @@ public class OperationLogServiceImpl implements OperationLogService {
     private OperationLogRepository operationLogRepository;
 
     @Override
+    // 功能：记录数据
     public void record(String action, String target, String detail) {
         String roleKey = AuthContext.getRoleKey();
         if (roleKey == null || !"ADMIN".equals(roleKey)) {
@@ -35,6 +36,7 @@ public class OperationLogServiceImpl implements OperationLogService {
         operationLogRepository.insert(log);
     }
 
+    // 功能：处理resolveip
     private String resolveIp() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {

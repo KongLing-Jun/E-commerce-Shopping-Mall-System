@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 export const useCounterStore = defineStore('counter', () => {
   const count = ref(0)
   const doubleCount = computed(() => count.value * 2)
+  // 功能：处理increment
   function increment() {
     count.value++
   }

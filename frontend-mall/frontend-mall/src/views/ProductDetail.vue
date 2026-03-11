@@ -1,4 +1,4 @@
-﻿﻿<template>
+﻿<template>
   <div class="space-y-8">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item to="/">{{ t('nav.home') }}</el-breadcrumb-item>
@@ -152,8 +152,10 @@ const tabs = [
   { key: 'Specifications', zh: '规格参数', en: 'Specifications' },
 ]
 const { t, locale } = useI18n()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
+// 功能：获取收藏
 const getFavorites = () => {
   try {
     const favorites = localStorage.getItem('userFavorites')
@@ -163,10 +165,12 @@ const getFavorites = () => {
   }
 }
 
+// 功能：保存收藏
 const saveFavorites = (favorites) => {
   localStorage.setItem('userFavorites', JSON.stringify(favorites))
 }
 
+// 功能：获取足迹
 const getFootprints = () => {
   try {
     const footprints = localStorage.getItem('userFootprints')
@@ -176,10 +180,12 @@ const getFootprints = () => {
   }
 }
 
+// 功能：保存足迹
 const saveFootprints = (footprints) => {
   localStorage.setItem('userFootprints', JSON.stringify(footprints))
 }
 
+// 功能：新增足迹
 const addFootprint = () => {
   if (!product.value) return
   const footprints = getFootprints()
@@ -224,8 +230,10 @@ watch(gallery, (images) => {
   activeImage.value = images[0] || ''
 })
 
+// 功能：格式化价格
 const formatPrice = (value) => Number(value || 0).toFixed(2)
 
+// 功能：加载商品
 const loadProduct = async () => {
   // 按商品ID加载详情，并按业务错误码展示明确提示。
   loading.value = true
@@ -268,6 +276,7 @@ const loadProduct = async () => {
   }
 }
 
+// 功能：新增to购物车
 const addToCart = async () => {
   // 将当前数量加入购物车，数量上限受库存约束。
   if (!product.value) {
@@ -285,12 +294,14 @@ const addToCart = async () => {
   }
 }
 
+// 功能：处理buynow
 const buyNow = async () => {
   // 复用加购逻辑后直接跳转到购物车结算。
   await addToCart()
   router.push('/cart')
 }
 
+// 功能：新增收藏
 const addFavorite = async () => {
   // 收藏当前商品，使用localStorage本地存储
   if (!product.value) {

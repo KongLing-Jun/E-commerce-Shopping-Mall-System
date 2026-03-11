@@ -41,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
     private long productDetailTtl;
 
     @Override
+    // 功能：处理搜索商品
     public PageResult<Product> searchProducts(String keyword, Long categoryId, int page, int size) {
         String cacheKey = CacheKeys.productSearch(keyword, categoryId, page, size);
         PageResult<Product> cached = cacheService.get(cacheKey, new TypeReference<PageResult<Product>>() {});
@@ -66,6 +67,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    // 功能：获取商品byid
     public ProductDetailView getProductById(Long productId) {
         if (productId == null) {
             return null;
@@ -84,6 +86,7 @@ public class ProductServiceImpl implements ProductService {
         return detailView;
     }
 
+    // 功能：处理to详情view
     private ProductDetailView toDetailView(Product product) {
         ProductDetailView view = new ProductDetailView();
         view.setId(product.getId());
@@ -101,6 +104,7 @@ public class ProductServiceImpl implements ProductService {
         return view;
     }
 
+    // 功能：加载图片
     private List<String> loadImages(Product product) {
         List<ProductImage> imageList = productImageRepository.selectList(new LambdaQueryWrapper<ProductImage>()
                 .eq(ProductImage::getProductId, product.getId())
@@ -119,6 +123,7 @@ public class ProductServiceImpl implements ProductService {
         return images;
     }
 
+    // 功能：构建specs
     private Map<String, String> buildSpecs(Product product) {
         Map<String, String> specs = new LinkedHashMap<>();
         specs.put("Stock", String.valueOf(product.getStock() == null ? 0 : product.getStock()));

@@ -26,6 +26,7 @@ public class AdminRoleController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:roles:list')")
+    // 功能：查询角色
     public Result<PageResult<Role>> listRoles(@RequestParam(required = false) String keyword,
                                               @RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "10") int size) {
@@ -34,6 +35,7 @@ public class AdminRoleController {
 
     @PostMapping
     @PreAuthorize("@permissionService.hasPerm('admin:roles:edit')")
+    // 功能：创建角色
     public Result<Role> createRole(@Valid @RequestBody AdminRoleRequest request) {
         Role role = adminRoleService.createRole(request);
         operationLogService.record("ROLE_CREATE", "role:" + role.getId(), role.getRoleKey());
@@ -42,6 +44,7 @@ public class AdminRoleController {
 
     @PutMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:roles:edit')")
+    // 功能：更新角色
     public Result<Role> updateRole(@PathVariable Long id, @Valid @RequestBody AdminRoleRequest request) {
         Role role = adminRoleService.updateRole(id, request);
         operationLogService.record("ROLE_UPDATE", "role:" + id, role.getRoleKey());
@@ -50,6 +53,7 @@ public class AdminRoleController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:roles:delete')")
+    // 功能：删除角色
     public Result<Void> deleteRole(@PathVariable Long id) {
         adminRoleService.deleteRole(id);
         operationLogService.record("ROLE_DELETE", "role:" + id, "deleted");
@@ -58,12 +62,14 @@ public class AdminRoleController {
 
     @GetMapping("/{id}/menus")
     @PreAuthorize("@permissionService.hasPerm('admin:roles:edit')")
+    // 功能：查询角色菜单
     public Result<List<Long>> listRoleMenus(@PathVariable Long id) {
         return Result.success(adminRoleService.listRoleMenuIds(id));
     }
 
     @PutMapping("/{id}/menus")
     @PreAuthorize("@permissionService.hasPerm('admin:roles:edit')")
+    // 功能：更新角色菜单
     public Result<Void> updateRoleMenus(@PathVariable Long id, @Valid @RequestBody RoleMenuUpdateRequest request) {
         adminRoleService.updateRoleMenus(id, request.getMenuIds());
         operationLogService.record("ROLE_MENUS", "role:" + id, "menus updated");

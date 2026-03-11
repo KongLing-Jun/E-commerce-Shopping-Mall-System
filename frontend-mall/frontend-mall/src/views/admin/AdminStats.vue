@@ -46,11 +46,13 @@ const chartRef = ref(null)
 const { t } = useI18n()
 let chartInstance
 
+// 功能：格式化金额
 const formatAmount = (value) => {
   const amount = Number(value || 0)
   return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(amount)
 }
 
+// 功能：处理renderchart
 const renderChart = () => {
   if (!chartRef.value) {
     return
@@ -87,6 +89,7 @@ const renderChart = () => {
   })
 }
 
+// 功能：获取概览
 const fetchOverview = async () => {
   try {
     const res = await fetchAdminStatsOverview()
@@ -101,6 +104,7 @@ const fetchOverview = async () => {
   }
 }
 
+// 功能：处理resize
 const handleResize = () => {
   if (chartInstance) {
     chartInstance.resize()

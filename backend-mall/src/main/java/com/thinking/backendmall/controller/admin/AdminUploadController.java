@@ -37,6 +37,7 @@ public class AdminUploadController {
 
     @PostMapping("/upload")
     @PreAuthorize("@permissionService.hasPerm('admin:upload')")
+    // 功能：上传数据
     public Result<Map<String, Object>> upload(@RequestParam("file") MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return Result.error(400, "File is empty");

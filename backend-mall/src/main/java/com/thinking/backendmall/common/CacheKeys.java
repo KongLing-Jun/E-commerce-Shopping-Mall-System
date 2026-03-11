@@ -9,13 +9,16 @@ public final class CacheKeys {
     public static final String PRODUCT_DETAIL_PREFIX = "product:detail:";
     public static final String PRODUCT_SEARCH_PREFIX = "product:search:";
 
+    // 功能：处理缓存keys
     private CacheKeys() {
     }
 
+    // 功能：处理商品详情
     public static String productDetail(Long productId) {
         return PRODUCT_DETAIL_PREFIX + productId;
     }
 
+    // 功能：处理商品搜索
     public static String productSearch(String keyword, Long categoryId, int page, int size) {
         String safeKeyword = keyword == null || keyword.isBlank() ? "all" : keyword.trim().toLowerCase();
         String safeCategory = categoryId == null ? "all" : String.valueOf(categoryId);

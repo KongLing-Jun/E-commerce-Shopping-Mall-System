@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
     <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center"></div>
     <div class="absolute inset-0 bg-slate-900/45 backdrop-blur-[3px]"></div>
@@ -63,6 +63,7 @@ const form = ref({
 })
 const { t } = useI18n()
 
+// 功能：处理register
 const handleRegister = async () => {
   if (!form.value.username || !form.value.phone || !form.value.password || !form.value.confirmPassword) {
     ElMessage.warning(t('auth.completeInfo'))

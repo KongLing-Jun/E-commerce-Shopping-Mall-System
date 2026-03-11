@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-8">
     <section class="soft-card p-6">
       <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -67,7 +67,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { searchProducts } from '@/api/product.js'
-import { getRecommend } from '@/api/home.js'
+import { getCategories } from '@/api/category.js'
 import { useI18n } from '@/i18n/index.js'
 
 const router = useRouter()
@@ -82,12 +82,14 @@ const categories = ref([])
 const loading = ref(false)
 const { t } = useI18n()
 
+// 功能：处理同步fromroute
 const syncFromRoute = () => {
   // 以 URL 参数为准恢复筛选条件，保证刷新和分享链接一致。
   keyword.value = route.query.keyword || ''
   categoryId.value = route.query.categoryId ? Number(route.query.categoryId) : ''
 }
 
+// 功能：处理搜索
 const search = async () => {
   loading.value = true
   try {
@@ -116,6 +118,7 @@ const search = async () => {
   }
 }
 
+// 功能：重置filters
 const resetFilters = () => {
   keyword.value = ''
   categoryId.value = ''
@@ -123,21 +126,24 @@ const resetFilters = () => {
   search()
 }
 
+// 功能：处理分页修改
 const handlePageChange = (value) => {
   page.value = value
   search()
 }
 
+// 功能：跳转到商品
 const goToProduct = (productId) => {
   router.push(`/product/${productId}`)
 }
 
+// 功能：加载分类
 const loadCategories = async () => {
   try {
-    // 复用首页推荐接口返回的分类数据，减少额外请求。
-    const res = await getRecommend()
+    // 查询可浏览分类，默认取一级分类用于筛选。
+    const res = await getCategories({ parentId: 0 })
     if (res.code === 200) {
-      categories.value = res.data.categories || []
+      categories.value = res.data || []
     }
   } catch {
     // ignore

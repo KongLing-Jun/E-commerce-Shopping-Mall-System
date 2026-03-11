@@ -65,41 +65,57 @@ public class DataInitializer implements CommandLineRunner {
     private boolean refreshProductImages;
 
     @Override
+    // 功能：处理run
     public void run(String... args) {
         if (roleRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init角色
             initRoles();
         }
         if (menuRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init菜单
             initMenus();
         }
         if (roleMenuRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init角色菜单
             initRoleMenus();
         }
+        // 功能：处理ensure分类菜单
         ensureCategoryMenus();
+        // 功能：处理ensure角色菜单
         ensureRoleMenus();
+        // 功能：处理ensure用户角色权限
         ensureUserRolePermission();
+        // 功能：处理ensure用户crud权限
         ensureUserCrudPermissions();
         if (userRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init用户
             initUsers();
         }
         if (categoryRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init分类
             initCategories();
         }
         if (productRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init商品
             initProducts();
         }
+        // 功能：处理normalizelegacy商品tothreec
         normalizeLegacyProductsToThreeC();
         if (refreshProductImages) {
+            // 功能：处理刷新all商品图片
             refreshAllProductImages();
         }
         if (productImageRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init商品图片
             initProductImages();
         }
         if (bannerRepository.selectCount(new QueryWrapper<>()) == 0) {
+            // 功能：处理init轮播图
             initBanners();
         }
     }
 
+    // 功能：处理init角色
     private void initRoles() {
         Role admin = new Role();
         admin.setRoleKey("ADMIN");
@@ -112,6 +128,7 @@ public class DataInitializer implements CommandLineRunner {
         roleRepository.insert(user);
     }
 
+    // 功能：处理init菜单
     private void initMenus() {
         // Frontend menus
         Menu home = new Menu();
@@ -334,6 +351,7 @@ public class DataInitializer implements CommandLineRunner {
         menuRepository.insert(uploadImage);
     }
 
+    // 功能：处理init角色菜单
     private void initRoleMenus() {
         Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
         Role userRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "USER"));
@@ -362,6 +380,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理ensure分类菜单
     private void ensureCategoryMenus() {
         Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
         if (adminRole == null) {
@@ -381,6 +400,7 @@ public class DataInitializer implements CommandLineRunner {
             categoryMenu.setVisible(1);
             menuRepository.insert(categoryMenu);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), categoryMenu.getId());
 
         Menu categoryEdit = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
@@ -393,6 +413,7 @@ public class DataInitializer implements CommandLineRunner {
             categoryEdit.setVisible(0);
             menuRepository.insert(categoryEdit);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), categoryEdit.getId());
 
         Menu categoryDelete = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
@@ -405,9 +426,11 @@ public class DataInitializer implements CommandLineRunner {
             categoryDelete.setVisible(0);
             menuRepository.insert(categoryDelete);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), categoryDelete.getId());
     }
 
+    // 功能：处理ensure角色菜单
     private void ensureRoleMenus() {
         Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
         if (adminRole == null) {
@@ -427,6 +450,7 @@ public class DataInitializer implements CommandLineRunner {
             roleMenu.setVisible(1);
             menuRepository.insert(roleMenu);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), roleMenu.getId());
 
         Menu roleEdit = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
@@ -439,6 +463,7 @@ public class DataInitializer implements CommandLineRunner {
             roleEdit.setVisible(0);
             menuRepository.insert(roleEdit);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), roleEdit.getId());
 
         Menu roleDelete = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
@@ -451,9 +476,11 @@ public class DataInitializer implements CommandLineRunner {
             roleDelete.setVisible(0);
             menuRepository.insert(roleDelete);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), roleDelete.getId());
     }
 
+    // 功能：处理ensure用户角色权限
     private void ensureUserRolePermission() {
         Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
         if (adminRole == null) {
@@ -469,9 +496,11 @@ public class DataInitializer implements CommandLineRunner {
             userRole.setVisible(0);
             menuRepository.insert(userRole);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), userRole.getId());
     }
 
+    // 功能：处理ensure用户crud权限
     private void ensureUserCrudPermissions() {
         Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
         if (adminRole == null) {
@@ -488,6 +517,7 @@ public class DataInitializer implements CommandLineRunner {
             userCreate.setVisible(0);
             menuRepository.insert(userCreate);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), userCreate.getId());
 
         Menu userEdit = menuRepository.selectOne(new LambdaQueryWrapper<Menu>()
@@ -500,9 +530,11 @@ public class DataInitializer implements CommandLineRunner {
             userEdit.setVisible(0);
             menuRepository.insert(userEdit);
         }
+        // 功能：处理ensure角色菜单
         ensureRoleMenu(adminRole.getId(), userEdit.getId());
     }
 
+    // 功能：处理ensure角色菜单
     private void ensureRoleMenu(Long roleId, Long menuId) {
         if (roleId == null || menuId == null) {
             return;
@@ -518,6 +550,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理init用户
     private void initUsers() {
         Role adminRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "ADMIN"));
         Role userRole = roleRepository.selectOne(new LambdaQueryWrapper<Role>().eq(Role::getRoleKey, "USER"));
@@ -544,6 +577,7 @@ public class DataInitializer implements CommandLineRunner {
         userRepository.insert(testUser);
     }
 
+    // 功能：处理init分类
     private void initCategories() {
         Category electronics = new Category();
         electronics.setName("Phones");
@@ -568,6 +602,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理init商品
     private void initProducts() {
         List<Category> categories = categoryRepository.selectList(new QueryWrapper<>());
         Long phoneId = findCategoryId(categories, "Phones");
@@ -599,6 +634,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理init轮播图
     private void initBanners() {
         List<Product> products = productRepository.selectList(new QueryWrapper<>());
         if (products.isEmpty()) {
@@ -616,13 +652,16 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理init商品图片
     private void initProductImages() {
         List<Product> products = productRepository.selectList(new QueryWrapper<>());
         for (Product product : products) {
+            // 功能：处理刷新商品gallery
             refreshProductGallery(product);
         }
     }
 
+    // 功能：处理normalizelegacy商品tothreec
     private void normalizeLegacyProductsToThreeC() {
         List<Product> products = productRepository.selectList(new QueryWrapper<>());
         if (products.isEmpty()) {
@@ -639,26 +678,32 @@ public class DataInitializer implements CommandLineRunner {
 
             if (containsAny(name, "chair", "plant", "jacket", "backpack", "sneaker", "shoe", "bottle", "book", "coffee")) {
                 if (containsAny(name, "chair")) {
+                    // 功能：应用legacyreplacement
                     applyLegacyReplacement(product, accessoryId, "Bluetooth Soundbar S8",
                             "2.1 channel soundbar with wireless subwoofer", new BigDecimal("249.00"),
                             "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=900&q=80");
                 } else if (containsAny(name, "jacket")) {
+                    // 功能：应用legacyreplacement
                     applyLegacyReplacement(product, accessoryId, "Portable SSD 1TB",
                             "USB 3.2 Gen2 transfer, compact metal body", new BigDecimal("169.00"),
                             "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=900&q=80");
                 } else if (containsAny(name, "plant", "bottle")) {
+                    // 功能：应用legacyreplacement
                     applyLegacyReplacement(product, accessoryId, "GaN Charger 100W",
                             "Multi-port fast charging for phone and laptop", new BigDecimal("89.00"),
                             "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=900&q=80");
                 } else if (containsAny(name, "book", "coffee")) {
+                    // 功能：应用legacyreplacement
                     applyLegacyReplacement(product, laptopId, "27-inch 4K Monitor",
                             "IPS panel, HDR, USB-C docking", new BigDecimal("459.00"),
                             "https://images.unsplash.com/photo-1527443224154-c4e9d81f5f7d?auto=format&fit=crop&w=900&q=80");
                 } else if (containsAny(name, "backpack")) {
+                    // 功能：应用legacyreplacement
                     applyLegacyReplacement(product, accessoryId, "Wireless Mouse Pro",
                             "Dual-mode Bluetooth + 2.4G, silent click", new BigDecimal("59.00"),
                             "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=900&q=80");
                 } else if (containsAny(name, "sneaker", "shoe")) {
+                    // 功能：应用legacyreplacement
                     applyLegacyReplacement(product, accessoryId, "Gaming Headset H7",
                             "7.1 surround sound, detachable microphone", new BigDecimal("129.00"),
                             "https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=900&q=80");
@@ -668,11 +713,13 @@ public class DataInitializer implements CommandLineRunner {
 
             if (changed) {
                 productRepository.updateById(product);
+                // 功能：处理刷新商品gallery
                 refreshProductGallery(product);
             }
         }
     }
 
+    // 功能：应用legacyreplacement
     private void applyLegacyReplacement(Product product, Long categoryId, String name, String brief, BigDecimal price, String coverUrl) {
         product.setCategoryId(categoryId);
         product.setName(name);
@@ -686,6 +733,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理刷新商品gallery
     private void refreshProductGallery(Product product) {
         if (product == null || product.getId() == null) {
             return;
@@ -702,6 +750,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理刷新商品gallery
     private void refreshProductGallery(Product product, List<String> gallery) {
         if (product == null || product.getId() == null) {
             return;
@@ -717,6 +766,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    // 功能：处理刷新all商品图片
     private void refreshAllProductImages() {
         List<Product> products = productRepository.selectList(new QueryWrapper<>());
         if (products.isEmpty()) {
@@ -731,10 +781,12 @@ public class DataInitializer implements CommandLineRunner {
                 }
                 productRepository.updateById(product);
             }
+            // 功能：处理刷新商品gallery
             refreshProductGallery(product, gallery);
         }
     }
 
+    // 功能：处理resolvethreec图片setstrict
     private List<String> resolveThreeCImageSetStrict(Product product) {
         List<String> gallery = resolveThreeCImageSet(product);
         if (gallery.isEmpty()) {
@@ -755,6 +807,7 @@ public class DataInitializer implements CommandLineRunner {
         return gallery;
     }
 
+    // 功能：处理resolvethreec图片set
     private List<String> resolveThreeCImageSet(Product product) {
         String name = product.getName() == null ? "" : product.getName().toLowerCase();
         if (containsAny(name, "phone", "smartphone")) {
@@ -793,6 +846,7 @@ public class DataInitializer implements CommandLineRunner {
         );
     }
 
+    // 功能：处理containsany
     private boolean containsAny(String source, String... keywords) {
         if (source == null || source.isBlank()) {
             return false;
@@ -805,6 +859,7 @@ public class DataInitializer implements CommandLineRunner {
         return false;
     }
 
+    // 功能：处理find分类id
     private Long findCategoryId(List<Category> categories, String name) {
         Optional<Category> match = categories.stream()
                 .filter(category -> name.equals(category.getName()))
@@ -815,6 +870,7 @@ public class DataInitializer implements CommandLineRunner {
         return categories.isEmpty() ? null : categories.get(0).getId();
     }
 
+    // 功能：构建商品
     private Product buildProduct(Long categoryId, String name, String brief, BigDecimal price, int stock,
             String coverUrl) {
         Product product = new Product();
@@ -830,11 +886,15 @@ public class DataInitializer implements CommandLineRunner {
         return product;
     }
 
+    // 功能：构建轮播图
     private Banner buildBanner(Product product, int sort, String imageUrl) {
         Banner banner = new Banner();
         banner.setImageUrl(imageUrl);
         banner.setLinkType("PRODUCT");
         banner.setLinkTarget(product.getId().toString());
+        banner.setTitle(product.getName());
+        banner.setSubtitle("精选热卖 · 立即查看");
+        banner.setButtonText("立即选购");
         banner.setSort(sort);
         banner.setStatus(1);
         return banner;

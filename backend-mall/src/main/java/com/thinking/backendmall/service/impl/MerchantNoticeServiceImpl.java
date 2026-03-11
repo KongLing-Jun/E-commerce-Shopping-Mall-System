@@ -41,6 +41,7 @@ public class MerchantNoticeServiceImpl implements MerchantNoticeService {
     private String merchantMailFrom;
 
     @Override
+    // 功能：处理notify订单paid
     public void notifyOrderPaid(String orderNo, Long userId, String addressSnapshot) {
         String content = "New paid order: " + orderNo + ", userId=" + userId + ", address=" + addressSnapshot;
         MerchantNotice notice = new MerchantNotice();
@@ -50,10 +51,12 @@ public class MerchantNoticeServiceImpl implements MerchantNoticeService {
         notice.setStatus(0);
         notice.setCreatedAt(LocalDateTime.now());
         merchantNoticeRepository.insert(notice);
+        // 功能：处理sendmailifenabled
         sendMailIfEnabled(orderNo, content);
     }
 
     @Override
+    // 功能：查询通知
     public PageResult<MerchantNoticeView> listNotices(int page, int size) {
         Page<MerchantNotice> noticePage = new Page<>(page + 1L, size);
         LambdaQueryWrapper<MerchantNotice> wrapper = new LambdaQueryWrapper<MerchantNotice>()
@@ -76,6 +79,7 @@ public class MerchantNoticeServiceImpl implements MerchantNoticeService {
     }
 
     @Override
+    // 功能：处理markasread
     public void markAsRead(Long id) {
         MerchantNotice notice = merchantNoticeRepository.selectById(id);
         if (notice == null) {
@@ -85,6 +89,7 @@ public class MerchantNoticeServiceImpl implements MerchantNoticeService {
         merchantNoticeRepository.updateById(notice);
     }
 
+    // 功能：处理sendmailifenabled
     private void sendMailIfEnabled(String orderNo, String content) {
         if (!merchantMailEnabled || merchantMailTo == null || merchantMailTo.isBlank()) {
             return;

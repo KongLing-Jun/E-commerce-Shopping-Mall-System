@@ -271,6 +271,9 @@ const messages = {
       statusDisabled: 'Disabled',
       linkType: 'Link Type',
       linkTarget: 'Target',
+      bannerTitleText: 'Banner Title',
+      bannerSubtitleText: 'Banner Subtitle',
+      bannerButtonText: 'Button Text',
       imageUrl: 'Image URL',
       upload: 'Upload',
       uploadSuccess: 'Upload successful',
@@ -537,9 +540,9 @@ const messages = {
       cartsTitle: '购物车管理',
       cartsSubtitle: '查看购物车并清理无效项。',
       ordersTitle: '订单管理',
-      menusTitle: '????',
+      menusTitle: '菜单管理',
       ordersSubtitle: '查看订单并发货。',
-      menusSubtitle: '??????????',
+      menusSubtitle: '维护菜单与按钮权限。',
       statsTitle: '销售概览',
       statsSubtitle: '实时趋势与热销排行。',
       newRole: '新增角色',
@@ -548,16 +551,16 @@ const messages = {
       roleSearch: '搜索角色标识/名称',
       assignMenus: '分配菜单',
       assignMenusHint: '选择该角色可访问的菜单与按钮权限。',
-      menuName: '????',
-      menuType: '????',
-      menuPath: '????',
-      menuComponent: '??',
-      permCode: '????',
-      parentMenu: '????',
-      visible: '????',
-      menuTypeMenu: '??',
-      menuTypeButton: '??',
-      menuPathRequired: '??????????',
+      menuName: '菜单名称',
+      menuType: '菜单类型',
+      menuPath: '路由路径',
+      menuComponent: '组件',
+      permCode: '权限标识',
+      parentMenu: '上级菜单',
+      visible: '是否显示',
+      menuTypeMenu: '菜单',
+      menuTypeButton: '按钮',
+      menuPathRequired: '菜单类型需要填写路由路径。',
       deleteRoleConfirm: '确认删除该角色？',
       newProduct: '新增商品',
       newBanner: '新增轮播',
@@ -565,6 +568,9 @@ const messages = {
       statusDisabled: '禁用',
       linkType: '跳转类型',
       linkTarget: '跳转目标',
+      bannerTitleText: '轮播标题',
+      bannerSubtitleText: '轮播副标题',
+      bannerButtonText: '按钮文案',
       imageUrl: '图片地址',
       upload: '上传',
       uploadSuccess: '上传成功',
@@ -594,6 +600,7 @@ const messages = {
   },
 }
 
+// 功能：设置语言
 const setLocale = (value) => {
   locale.value = value
   if (typeof window !== 'undefined') {
@@ -602,6 +609,7 @@ const setLocale = (value) => {
   }
 }
 
+// 功能：处理t
 const t = (key) => {
   const segments = key.split('.')
   let result = messages[locale.value]
@@ -619,6 +627,7 @@ const availableLocales = computed(() => [
   { label: '中文', value: 'zh' },
 ])
 
+// 功能：处理usei18n
 export const useI18n = () => ({
   locale,
   setLocale,

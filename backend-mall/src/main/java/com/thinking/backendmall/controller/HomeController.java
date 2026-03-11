@@ -22,12 +22,14 @@ public class HomeController {
     private HomeService homeService;
 
     @GetMapping("/banners")
+    // 功能：获取轮播图
     public Result<List<Banner>> getBanners() {
         List<Banner> banners = homeService.getBanners();
         return Result.success(banners);
     }
 
     @GetMapping("/recommend")
+    // 功能：获取推荐
     public Result<Map<String, Object>> getRecommend() {
         List<Category> categories = homeService.getCategories();
         List<Product> recommendProducts = homeService.getRecommendProducts();
@@ -44,11 +46,13 @@ public class HomeController {
     }
 
     @GetMapping("/hot")
+    // 功能：获取热销商品
     public Result<List<Product>> getHotProducts() {
         return Result.success(homeService.getHotProducts());
     }
 
     @GetMapping("/promo")
+    // 功能：获取促销商品
     public Result<List<Product>> getPromoProducts() {
         return Result.success(homeService.getPromoProducts());
     }

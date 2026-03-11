@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="grid gap-6 lg:grid-cols-[270px_1fr]">
     <aside class="h-fit rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
       <div class="flex items-center gap-3 border-b border-[var(--line)] pb-5">
@@ -24,7 +24,7 @@
         </div>
         <div class="flex gap-2">
           <el-button @click="loadOrders">{{ dual('筛选', 'Filter') }}</el-button>
-          <el-button type="primary">{{ dual('追踪订单', 'Track Order') }}</el-button>
+          <el-button type="primary" @click="goToTrack">{{ dual('追踪订单', 'Track Order') }}</el-button>
         </div>
       </header>
 
@@ -187,6 +187,7 @@ const invoiceVisible = ref(false)
 const invoiceLoading = ref(false)
 const invoiceData = ref(null)
 const { t, locale } = useI18n()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 // 订单状态筛选项，和后端状态码保持一致。
@@ -200,6 +201,7 @@ const statusOptions = computed(() => [
 
 // 金额与日期展示格式化工具。
 const formatPrice = (value) => Number(value || 0).toFixed(2)
+// 功能：格式化日期
 const formatDate = (value) => {
   if (!value) {
     return '--'
@@ -261,6 +263,12 @@ const pay = async (order) => {
   router.push(`/orders/pay/${order.orderNo}`)
 }
 
+// 功能：跳转到订单追踪页。
+const goToTrack = () => {
+  router.push('/orders/track')
+}
+
+// 功能：确认数据
 const confirm = async (order) => {
   try {
     await ElMessageBox.confirm(t('orderList.confirmConfirm'), 'Confirm', { type: 'warning' })

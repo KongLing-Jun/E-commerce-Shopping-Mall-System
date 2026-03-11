@@ -17,6 +17,7 @@ public class AdminCartController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:carts:list')")
+    // 功能：查询购物车明细
     public Result<PageResult<AdminCartItemView>> listCartItems(@RequestParam(required = false) Long userId,
                                                                @RequestParam(defaultValue = "0") int page,
                                                                @RequestParam(defaultValue = "10") int size) {
@@ -25,6 +26,7 @@ public class AdminCartController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:carts:delete')")
+    // 功能：删除购物车明细
     public Result<Void> deleteCartItem(@PathVariable Long id) {
         adminCartService.deleteCartItem(id);
         return Result.success();

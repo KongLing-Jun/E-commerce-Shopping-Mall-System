@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="space-y-6">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -272,8 +272,10 @@ const displayProducts = computed(() => {
   return data
 })
 
+// 功能：格式化价格
 const formatPrice = (value) => Number(value || 0).toFixed(2)
 
+// 功能：获取商品
 const fetchProducts = async () => {
   loading.value = true
   try {
@@ -298,6 +300,7 @@ const fetchProducts = async () => {
   }
 }
 
+// 功能：重置filters
 const resetFilters = () => {
   filters.keyword = ''
   filters.categoryId = null
@@ -306,26 +309,31 @@ const resetFilters = () => {
   fetchProducts()
 }
 
+// 功能：处理clear分类
 const clearCategory = () => {
   filters.categoryId = null
   fetchProducts()
 }
 
+// 功能：应用排序
 const applySort = () => {
   // Sorting is computed locally.
 }
 
+// 功能：修改分页
 const changePage = (nextPage) => {
   page.value = nextPage - 1
   fetchProducts()
 }
 
+// 功能：修改分页大小
 const changeSize = (nextSize) => {
   size.value = nextSize
   page.value = 0
   fetchProducts()
 }
 
+// 功能：重置form
 const resetForm = () => {
   form.name = ''
   form.categoryId = null
@@ -338,12 +346,14 @@ const resetForm = () => {
   form.detailHtml = ''
 }
 
+// 功能：打开create
 const openCreate = () => {
   editingId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
+// 功能：打开edit
 const openEdit = (row) => {
   editingId.value = row.id
   form.name = row.name
@@ -358,6 +368,7 @@ const openEdit = (row) => {
   dialogVisible.value = true
 }
 
+// 功能：解析图片urls
 const parseImageUrls = (rawText) => {
   return String(rawText || '')
     .split('\n')
@@ -365,6 +376,7 @@ const parseImageUrls = (rawText) => {
     .filter((line) => line.length > 0)
 }
 
+// 功能：保存商品
 const saveProduct = async () => {
   if (!form.name || !form.categoryId) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -400,6 +412,7 @@ const saveProduct = async () => {
   }
 }
 
+// 功能：处理上传
 const handleUpload = async (options) => {
   try {
     const res = await uploadAdminFile(options.file)
@@ -419,6 +432,7 @@ const handleUpload = async (options) => {
   }
 }
 
+// 功能：获取分类
 const fetchCategories = async () => {
   try {
     const res = await fetchAdminCategories({ page: 0, size: 200 })
@@ -430,6 +444,7 @@ const fetchCategories = async () => {
   }
 }
 
+// 功能：获取轮播图
 const fetchBanners = async () => {
   try {
     const res = await fetchAdminBanners({ page: 0, size: 20 })
@@ -441,6 +456,7 @@ const fetchBanners = async () => {
   }
 }
 
+// 功能：处理分类label
 const categoryLabel = (category) => {
   if (category?.status === 0) {
     return `${category.name} (${t('admin.statusDisabled')})`
@@ -448,6 +464,7 @@ const categoryLabel = (category) => {
   return category?.name || ''
 }
 
+// 功能：设置状态
 const setStatus = async (row, status) => {
   try {
     const res = status === 'ON' ? await enableAdminProduct(row.id) : await disableAdminProduct(row.id)
@@ -462,6 +479,7 @@ const setStatus = async (row, status) => {
   }
 }
 
+// 功能：移除商品
 const removeProduct = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.deleteConfirm'), 'Confirm', { type: 'warning' })
@@ -479,6 +497,7 @@ const removeProduct = async (row) => {
   }
 }
 
+// 功能：导出csv
 const exportCsv = () => {
   if (!displayProducts.value.length) {
     ElMessage.info('No products to export')

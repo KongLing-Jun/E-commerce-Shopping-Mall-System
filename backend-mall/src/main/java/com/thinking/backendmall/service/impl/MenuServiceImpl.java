@@ -26,6 +26,7 @@ public class MenuServiceImpl implements MenuService {
     private RoleRepository roleRepository;
 
     @Override
+    // 功能：查询我的菜单
     public List<MenuTreeNode> listMyMenus(String roleKey) {
         if (roleKey == null || roleKey.isBlank()) {
             throw new BusinessException("Role is required");
@@ -39,6 +40,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    // 功能：查询我的权限
     public List<String> listMyPerms(String roleKey) {
         if (roleKey == null || roleKey.isBlank()) {
             throw new BusinessException("Role is required");
@@ -51,6 +53,7 @@ public class MenuServiceImpl implements MenuService {
         return perms == null ? new ArrayList<>() : perms;
     }
 
+    // 功能：构建tree
     private List<MenuTreeNode> buildTree(List<Menu> menus) {
         Map<Long, MenuTreeNode> nodeMap = new HashMap<>();
         List<MenuTreeNode> roots = new ArrayList<>();
@@ -70,6 +73,7 @@ public class MenuServiceImpl implements MenuService {
         return roots;
     }
 
+    // 功能：处理tonode
     private MenuTreeNode toNode(Menu menu) {
         MenuTreeNode node = new MenuTreeNode();
         node.setId(menu.getId());

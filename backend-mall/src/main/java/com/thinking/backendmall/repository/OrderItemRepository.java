@@ -24,5 +24,6 @@ public interface OrderItemRepository extends BaseMapper<OrderItem> {
             ORDER BY totalQuantity DESC
             LIMIT #{limit}
             """)
+    // 功能：处理selecttop商品
     List<TopProductView> selectTopProducts(@Param("limit") int limit);
 }

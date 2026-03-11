@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
+    // 功能：处理businessexception
     public Result<Void> handleBusinessException(BusinessException e) {
         // Return business error code/message directly to frontend.
         return Result.error(e.getCode(), e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    // 功能：处理validationexception
     public Result<Void> handleValidationException(MethodArgumentNotValidException e) {
         // Return first field validation message.
         String message = e.getBindingResult().getAllErrors().isEmpty()
@@ -24,6 +26,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
+    // 功能：处理constraintviolation
     public Result<Void> handleConstraintViolation(ConstraintViolationException e) {
         // Handle query/path parameter validation failures.
         String message = e.getConstraintViolations().isEmpty()
@@ -33,6 +36,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
+    // 功能：处理exception
     public Result<Void> handleException(Exception e) {
         // Fallback for unhandled server-side exceptions.
         return Result.error(ErrorCode.SERVER_ERROR);

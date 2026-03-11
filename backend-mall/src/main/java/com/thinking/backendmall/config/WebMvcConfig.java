@@ -18,6 +18,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private String uploadUrlPrefix;
 
     @Override
+    // 功能：新增resourcehandlers
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
         String location = uploadPath.toUri().toString();

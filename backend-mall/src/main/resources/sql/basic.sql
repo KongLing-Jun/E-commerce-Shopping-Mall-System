@@ -23,6 +23,9 @@ create table banner
     image_url   varchar(255)  not null,
     link_type   varchar(255)  null,
     link_target varchar(255)  null,
+    title       varchar(255)  null,
+    subtitle    varchar(255)  null,
+    button_text varchar(255)  null,
     sort        int default 0 null,
     status      int           null
 )
@@ -153,6 +156,23 @@ create table order_delivery
     express_company varchar(64) null
 )
     charset = utf8mb4;
+
+create table order_tracking_event
+(
+    id          bigint auto_increment
+        primary key,
+    order_id    bigint       not null,
+    status      int          null,
+    title       varchar(255) not null,
+    description varchar(512) null,
+    location    varchar(255) null,
+    event_time  datetime     null,
+    created_at  datetime     null
+)
+    charset = utf8mb4;
+
+create index idx_tracking_order_id
+    on order_tracking_event (order_id);
 
 create table order_item
 (

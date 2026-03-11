@@ -20,28 +20,33 @@ public class AddressController {
     private AddressService addressService;
 
     @GetMapping
+    // 功能：查询地址
     public Result<List<Address>> listAddresses() {
         return Result.success(addressService.listAddresses(requireUserId()));
     }
 
     @PostMapping
+    // 功能：新增地址
     public Result<Void> addAddress(@Valid @RequestBody AddressRequest request) {
         addressService.addAddress(requireUserId(), request);
         return Result.success();
     }
 
     @PutMapping("/{id}")
+    // 功能：更新地址
     public Result<Void> updateAddress(@PathVariable Long id, @Valid @RequestBody AddressRequest request) {
         addressService.updateAddress(requireUserId(), id, request);
         return Result.success();
     }
 
     @DeleteMapping("/{id}")
+    // 功能：删除地址
     public Result<Void> deleteAddress(@PathVariable Long id) {
         addressService.deleteAddress(requireUserId(), id);
         return Result.success();
     }
 
+    // 功能：获取并校验当前用户ID
     private Long requireUserId() {
         Long userId = AuthContext.getUserId();
         if (userId == null) {

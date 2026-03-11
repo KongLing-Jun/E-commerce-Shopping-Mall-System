@@ -180,10 +180,14 @@ const passwordLabel = computed(() => (
   userDialogMode.value === 'create' ? t('auth.password') : t('admin.newPasswordOptional')
 ))
 
+// 功能：处理initials
 const initials = (name) => (name || '?').slice(0, 2).toUpperCase()
+// 功能：处理状态type
 const statusType = (status) => (status === 1 ? 'success' : 'danger')
+// 功能：订单状态文本映射
 const statusText = (status) => (status === 1 ? t('admin.statusEnabled') : t('admin.statusDisabled'))
 
+// 功能：获取用户
 const fetchUsers = async () => {
   loading.value = true
   try {
@@ -206,6 +210,7 @@ const fetchUsers = async () => {
   }
 }
 
+// 功能：获取角色
 const fetchRoles = async () => {
   try {
     const res = await fetchAdminRoles({ page: 0, size: 200 })
@@ -217,23 +222,27 @@ const fetchRoles = async () => {
   }
 }
 
+// 功能：重置filters
 const resetFilters = () => {
   filters.keyword = ''
   page.value = 0
   fetchUsers()
 }
 
+// 功能：修改分页
 const changePage = (nextPage) => {
   page.value = nextPage - 1
   fetchUsers()
 }
 
+// 功能：修改分页大小
 const changeSize = (nextSize) => {
   size.value = nextSize
   page.value = 0
   fetchUsers()
 }
 
+// 功能：打开createdialog
 const openCreateDialog = () => {
   userDialogMode.value = 'create'
   userForm.id = null
@@ -245,6 +254,7 @@ const openCreateDialog = () => {
   userDialogVisible.value = true
 }
 
+// 功能：打开editdialog
 const openEditDialog = (row) => {
   userDialogMode.value = 'edit'
   userForm.id = row.id
@@ -256,6 +266,7 @@ const openEditDialog = (row) => {
   userDialogVisible.value = true
 }
 
+// 功能：保存用户
 const saveUser = async () => {
   if (!userForm.username || !userForm.phone || !userForm.roleId) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -294,6 +305,7 @@ const saveUser = async () => {
   }
 }
 
+// 功能：禁用数据
 const disable = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.disableConfirm'), t('common.actions'), { type: 'warning' })
@@ -311,6 +323,7 @@ const disable = async (row) => {
   }
 }
 
+// 功能：重置密码
 const resetPassword = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.resetConfirm'), t('common.actions'), { type: 'warning' })
@@ -327,12 +340,14 @@ const resetPassword = async (row) => {
   }
 }
 
+// 功能：打开角色dialog
 const openRoleDialog = (row) => {
   roleForm.userId = row.id
   roleForm.roleId = row.roleId
   roleDialogVisible.value = true
 }
 
+// 功能：保存用户角色
 const saveUserRole = async () => {
   if (!roleForm.userId || !roleForm.roleId) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -355,6 +370,7 @@ const saveUserRole = async () => {
   }
 }
 
+// 功能：导出csv
 const exportCsv = () => {
   if (!users.value.length) {
     ElMessage.info(t('common.empty'))

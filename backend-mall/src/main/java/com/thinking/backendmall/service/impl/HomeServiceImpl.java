@@ -38,6 +38,7 @@ public class HomeServiceImpl implements HomeService {
     private long homeTtl;
 
     @Override
+    // 功能：获取轮播图
     public List<Banner> getBanners() {
         List<Banner> cached = cacheService.get(CacheKeys.HOME_BANNERS, new TypeReference<List<Banner>>() {});
         if (cached != null) {
@@ -51,6 +52,7 @@ public class HomeServiceImpl implements HomeService {
     }
 
     @Override
+    // 功能：获取分类
     public List<Category> getCategories() {
         List<Category> cached = cacheService.get(CacheKeys.HOME_CATEGORIES, new TypeReference<List<Category>>() {});
         if (cached != null) {
@@ -64,6 +66,7 @@ public class HomeServiceImpl implements HomeService {
     }
 
     @Override
+    // 功能：获取推荐商品
     public List<Product> getRecommendProducts() {
         List<Product> cached = cacheService.get(CacheKeys.HOME_RECOMMEND, new TypeReference<List<Product>>() {});
         if (cached != null) {
@@ -77,6 +80,7 @@ public class HomeServiceImpl implements HomeService {
     }
 
     @Override
+    // 功能：获取热销商品
     public List<Product> getHotProducts() {
         List<Product> cached = cacheService.get(CacheKeys.HOME_HOT, new TypeReference<List<Product>>() {});
         if (cached != null) {
@@ -92,6 +96,7 @@ public class HomeServiceImpl implements HomeService {
     }
 
     @Override
+    // 功能：获取促销商品
     public List<Product> getPromoProducts() {
         List<Product> cached = cacheService.get(CacheKeys.HOME_PROMO, new TypeReference<List<Product>>() {});
         if (cached != null) {
@@ -106,6 +111,7 @@ public class HomeServiceImpl implements HomeService {
         return products;
     }
 
+    // 功能：查询top商品
     private List<Product> queryTopProducts(LambdaQueryWrapper<Product> wrapper) {
         Page<Product> page = new Page<>(1, 10);
         productRepository.selectPage(page, wrapper);

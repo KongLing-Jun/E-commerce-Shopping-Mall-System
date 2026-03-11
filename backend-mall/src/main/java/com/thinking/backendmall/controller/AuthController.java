@@ -29,6 +29,7 @@ public class AuthController {
     private MenuService menuService;
 
     @PostMapping("/register")
+    // 功能：注册数据
     public Result<Map<String, Object>> register(@Valid @RequestBody AuthRegisterRequest body) {
         Map<String, Object> result = authService.register(
                 body.getUsername(),
@@ -39,6 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    // 功能：登录数据
     public Result<Map<String, Object>> login(@Valid @RequestBody AuthLoginRequest body) {
         Map<String, Object> result = authService.login(body.getUsername(), body.getPassword());
         return Result.success(result);
@@ -46,6 +48,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
+    // 功能：退出登录数据
     public Result<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
@@ -60,6 +63,7 @@ public class AuthController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
+    // 功能：处理当前用户
     public Result<Map<String, Object>> me() {
         Long userId = AuthContext.getUserId();
         String username = AuthContext.getUsername();

@@ -32,6 +32,7 @@ public class AdminUserController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:users:list')")
+    // 功能：查询用户
     public Result<PageResult<AdminUserView>> listUsers(@RequestParam(required = false) String keyword,
                                                         @RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "10") int size) {
@@ -41,6 +42,7 @@ public class AdminUserController {
 
     @PostMapping
     @PreAuthorize("@permissionService.hasPerm('admin:users:create')")
+    // 功能：创建用户
     public Result<Long> createUser(@Valid @RequestBody AdminUserUpsertRequest request) {
         // Create user and record audit log.
         Long userId = adminUserService.createUser(request);
@@ -50,6 +52,7 @@ public class AdminUserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:users:edit')")
+    // 功能：更新用户
     public Result<Void> updateUser(@PathVariable Long id, @Valid @RequestBody AdminUserUpsertRequest request) {
         // Update username/phone/status/role and optional password.
         adminUserService.updateUser(id, request);
@@ -59,6 +62,7 @@ public class AdminUserController {
 
     @PutMapping("/{id}/disable")
     @PreAuthorize("@permissionService.hasPerm('admin:users:disable')")
+    // 功能：禁用用户
     public Result<Void> disableUser(@PathVariable Long id) {
         // Disable user account.
         adminUserService.disableUser(id);
@@ -68,6 +72,7 @@ public class AdminUserController {
 
     @PutMapping("/{id}/reset-password")
     @PreAuthorize("@permissionService.hasPerm('admin:users:reset')")
+    // 功能：重置密码
     public Result<Void> resetPassword(@PathVariable Long id,
                                       @RequestBody(required = false) AdminResetPasswordRequest request) {
         // Reset password to given value or default value.
@@ -79,6 +84,7 @@ public class AdminUserController {
 
     @PutMapping("/{id}/role")
     @PreAuthorize("@permissionService.hasPerm('admin:users:role')")
+    // 功能：更新用户角色
     public Result<Void> updateUserRole(@PathVariable Long id, @Valid @RequestBody AdminUserRoleRequest request) {
         // Update user role only.
         adminUserService.updateUserRole(id, request.getRoleId());

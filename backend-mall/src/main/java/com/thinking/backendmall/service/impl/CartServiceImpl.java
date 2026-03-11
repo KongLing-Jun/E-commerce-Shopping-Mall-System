@@ -30,6 +30,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    // 功能：新增to购物车
     public void addToCart(Long userId, Long productId, Integer quantity) {
         if (productId == null) {
             throw new BusinessException("ProductId is required");
@@ -66,6 +67,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    // 功能：查询购物车明细
     public List<CartItemView> listCartItems(Long userId) {
         List<CartItem> items = cartItemRepository.selectList(new LambdaQueryWrapper<CartItem>()
                 .eq(CartItem::getUserId, userId));
@@ -102,6 +104,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    // 功能：更新购物车明细
     public void updateCartItem(Long userId, Long cartItemId, Integer quantity, Integer checked) {
         CartItem item = cartItemRepository.selectById(cartItemId);
         if (item == null || !userId.equals(item.getUserId())) {
@@ -129,6 +132,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    // 功能：删除购物车明细
     public void deleteCartItem(Long userId, Long cartItemId) {
         CartItem item = cartItemRepository.selectById(cartItemId);
         if (item == null || !userId.equals(item.getUserId())) {

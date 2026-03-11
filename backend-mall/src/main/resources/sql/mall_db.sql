@@ -49,6 +49,9 @@ CREATE TABLE `banner`  (
   `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `link_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `link_target` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `subtitle` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `button_text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `sort` int(0) NULL DEFAULT 0,
   `status` int(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
@@ -58,9 +61,9 @@ CREATE TABLE `banner`  (
 -- ----------------------------
 -- Records of banner
 -- ----------------------------
-INSERT INTO `banner` VALUES (1, 'https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=1200&q=80', 'PRODUCT', '1', 1, 1);
-INSERT INTO `banner` VALUES (2, 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80', 'PRODUCT', '2', 2, 1);
-INSERT INTO `banner` VALUES (3, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80', 'PRODUCT', '3', 3, 1);
+INSERT INTO `banner` VALUES (1, 'https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=1200&q=80', 'PRODUCT', '1', '新品上市', '高能3C新品抢先看', '立即购买', 1, 1);
+INSERT INTO `banner` VALUES (2, 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80', 'PRODUCT', '2', '办公利器', '轻薄高性能笔记本', '查看详情', 2, 1);
+INSERT INTO `banner` VALUES (3, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80', 'PRODUCT', '3', '潮流配件', '耳机与穿戴好物', '立即选购', 3, 1);
 
 -- ----------------------------
 -- Table structure for cart_item
@@ -211,6 +214,23 @@ CREATE TABLE `order_delivery`  (
   `express_company` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`order_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for order_tracking_event
+-- ----------------------------
+DROP TABLE IF EXISTS `order_tracking_event`;
+CREATE TABLE `order_tracking_event`  (
+  `id` bigint(0) NOT NULL AUTO_INCREMENT,
+  `order_id` bigint(0) NOT NULL,
+  `status` int(0) NULL DEFAULT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `description` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `location` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `event_time` datetime NULL DEFAULT NULL,
+  `created_at` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_tracking_order_id`(`order_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for order_item

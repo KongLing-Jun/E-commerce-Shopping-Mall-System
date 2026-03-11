@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="space-y-6">
     <div>
       <p class="text-xs uppercase tracking-[0.35em] text-[var(--muted)]">Admin Console</p>
@@ -75,6 +75,7 @@ const filters = reactive({
   userId: '',
 })
 
+// 功能：获取购物车
 const fetchCarts = async () => {
   loading.value = true
   try {
@@ -97,23 +98,27 @@ const fetchCarts = async () => {
   }
 }
 
+// 功能：重置filters
 const resetFilters = () => {
   filters.userId = ''
   page.value = 0
   fetchCarts()
 }
 
+// 功能：修改分页
 const changePage = (nextPage) => {
   page.value = nextPage - 1
   fetchCarts()
 }
 
+// 功能：修改分页大小
 const changeSize = (nextSize) => {
   size.value = nextSize
   page.value = 0
   fetchCarts()
 }
 
+// 功能：移除明细
 const removeItem = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.deleteConfirm'), 'Confirm', { type: 'warning' })

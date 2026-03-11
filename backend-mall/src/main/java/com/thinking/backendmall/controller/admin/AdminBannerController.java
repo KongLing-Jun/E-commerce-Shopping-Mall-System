@@ -19,6 +19,7 @@ public class AdminBannerController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:banners:list')")
+    // 功能：查询轮播图
     public Result<PageResult<Banner>> listBanners(@RequestParam(required = false) Integer status,
                                                   @RequestParam(defaultValue = "0") int page,
                                                   @RequestParam(defaultValue = "10") int size) {
@@ -27,18 +28,21 @@ public class AdminBannerController {
 
     @PostMapping
     @PreAuthorize("@permissionService.hasPerm('admin:banners:edit')")
+    // 功能：创建轮播图
     public Result<Banner> createBanner(@Valid @RequestBody AdminBannerRequest request) {
         return Result.success(adminBannerService.createBanner(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:banners:edit')")
+    // 功能：更新轮播图
     public Result<Banner> updateBanner(@PathVariable Long id, @Valid @RequestBody AdminBannerRequest request) {
         return Result.success(adminBannerService.updateBanner(id, request));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:banners:edit')")
+    // 功能：删除轮播图
     public Result<Void> deleteBanner(@PathVariable Long id) {
         adminBannerService.deleteBanner(id);
         return Result.success();

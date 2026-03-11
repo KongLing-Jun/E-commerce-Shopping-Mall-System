@@ -3,6 +3,7 @@ package com.thinking.backendmall.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.thinking.backendmall.common.BusinessException;
 import com.thinking.backendmall.config.JwtUtil;
+import com.thinking.backendmall.config.security.AuthMemoryStore;
 import com.thinking.backendmall.entity.Role;
 import com.thinking.backendmall.entity.User;
 import com.thinking.backendmall.repository.RoleRepository;
@@ -11,14 +12,12 @@ import com.thinking.backendmall.service.AuthService;
 import com.thinking.backendmall.service.MenuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -36,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private MenuService menuService;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private AuthMemoryStore authMemoryStore;
 
     @Value("${app.login.max-attempts:5}")
     private int maxAttempts;
@@ -47,11 +46,13 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
+    // 功能：初始化认证服务所需的密码加密器。
     public AuthServiceImpl(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
+    // 功能：注册账号并写入用户信息。
     public Map<String, Object> register(String username, String phone, String password, String confirmPassword) {
         if (!password.equals(confirmPassword)) {
             throw new BusinessException("Passwords do not match");
@@ -86,25 +87,26 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    // 功能：校验账号密码并返回登录信息。
     public Map<String, Object> login(String username, String password) {
-        if (isLocked(username)) {
+        if (authMemoryStore.isLocked(username, maxAttempts)) {
             throw new BusinessException("Too many login attempts. Please try later.");
         }
         User user = userRepository.selectOne(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, username));
         if (user == null) {
-            recordFailure(username);
+            authMemoryStore.recordFailure(username, lockSeconds);
             throw new BusinessException("User not found");
         }
         if (user.getStatus() != 1) {
-            recordFailure(username);
+            authMemoryStore.recordFailure(username, lockSeconds);
             throw new BusinessException("User is disabled");
         }
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-            recordFailure(username);
+            authMemoryStore.recordFailure(username, lockSeconds);
             throw new BusinessException("Invalid password");
         }
-        clearFailure(username);
+        authMemoryStore.clearFailure(username);
 
         Role role = roleRepository.selectById(user.getRoleId());
         String roleKey = role != null ? role.getRoleKey() : "USER";
@@ -121,6 +123,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    // 功能：登出时将令牌加入本地黑名单。
     public void logout(String token) {
         if (token == null || token.isBlank()) {
             return;
@@ -129,59 +132,10 @@ public class AuthServiceImpl implements AuthService {
             var claims = jwtUtil.getClaimsFromToken(token);
             long ttl = claims.getExpiration().getTime() - System.currentTimeMillis();
             if (ttl > 0) {
-                redisTemplate.opsForValue().set(tokenBlacklistKey(token), "1", ttl, TimeUnit.MILLISECONDS);
+                authMemoryStore.blacklistToken(token, ttl);
             }
         } catch (Exception ex) {
-            // Ignore invalid token or Redis failures for logout API.
+            // Ignore invalid token.
         }
-    }
-
-    private boolean isLocked(String username) {
-        if (username == null || username.isBlank()) {
-            return false;
-        }
-        try {
-            String value = redisTemplate.opsForValue().get(loginFailKey(username));
-            if (value == null) {
-                return false;
-            }
-            int attempts = Integer.parseInt(value);
-            return attempts >= maxAttempts;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
-    private void recordFailure(String username) {
-        if (username == null || username.isBlank()) {
-            return;
-        }
-        try {
-            Long attempts = redisTemplate.opsForValue().increment(loginFailKey(username));
-            if (attempts != null && attempts == 1L) {
-                redisTemplate.expire(loginFailKey(username), lockSeconds, TimeUnit.SECONDS);
-            }
-        } catch (Exception ex) {
-            // Ignore Redis failures.
-        }
-    }
-
-    private void clearFailure(String username) {
-        if (username == null || username.isBlank()) {
-            return;
-        }
-        try {
-            redisTemplate.delete(loginFailKey(username));
-        } catch (Exception ex) {
-            // Ignore Redis failures.
-        }
-    }
-
-    private String loginFailKey(String username) {
-        return "login:fail:" + username.toLowerCase();
-    }
-
-    private String tokenBlacklistKey(String token) {
-        return "jwt:blacklist:" + token;
     }
 }

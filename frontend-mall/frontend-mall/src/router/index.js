@@ -4,11 +4,13 @@ import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import ProductList from '@/views/ProductList.vue'
 import ProductDetail from '@/views/ProductDetail.vue'
+import CategoryBrowse from '@/views/CategoryBrowse.vue'
 import Cart from '@/views/Cart.vue'
 import Address from '@/views/Address.vue'
 import OrderConfirm from '@/views/OrderConfirm.vue'
 import OrderPay from '@/views/OrderPay.vue'
 import OrderList from '@/views/OrderList.vue'
+import OrderTrack from '@/views/OrderTrack.vue'
 import UserProfile from '@/views/UserProfile.vue'
 import { fetchMyMenus } from '@/api/menus.js'
 import { me } from '@/api/auth.js'
@@ -32,55 +34,67 @@ const router = createRouter({
       path: '/',
       name: 'Home',
       component: Home,
-      meta: { title: 'E E-Shop - 首页' },
+      meta: { title: 'E-Shop Home' },
     },
     {
       path: '/login',
       name: 'Login',
       component: Login,
-      meta: { title: '用户登录' },
+      meta: { title: 'Login' },
     },
     {
       path: '/register',
       name: 'Register',
       component: Register,
-      meta: { title: '用户注册' },
+      meta: { title: 'Register' },
     },
     {
       path: '/products',
       name: 'ProductList',
       component: ProductList,
-      meta: { title: '商品列表' },
+      meta: { title: 'Products' },
+    },
+    {
+      path: '/categories',
+      name: 'CategoryBrowse',
+      component: CategoryBrowse,
+      meta: { title: 'Categories' },
     },
     {
       path: '/product/:productId',
       name: 'ProductDetail',
       component: ProductDetail,
-      meta: { title: '商品详情' },
+      meta: { title: 'Product Detail' },
     },
     {
       path: '/cart',
       name: 'Cart',
       component: Cart,
-      meta: { requiresAuth: true, title: '购物车' },
+      meta: { requiresAuth: true, title: 'Cart' },
     },
     {
       path: '/addresses',
       name: 'Address',
       component: Address,
-      meta: { requiresAuth: true, title: '收货地址' },
+      meta: { requiresAuth: true, title: 'Addresses' },
     },
     {
       path: '/orders/confirm',
       name: 'OrderConfirm',
       component: OrderConfirm,
-      meta: { requiresAuth: true, title: '确认订单' },
+      meta: { requiresAuth: true, title: 'Order Confirm' },
     },
     {
       path: '/orders',
       name: 'OrderList',
       component: OrderList,
-      meta: { requiresAuth: true, title: '我的订单' },
+      meta: { requiresAuth: true, title: 'My Orders' },
+    },
+    {
+      path: '/orders/track',
+      name: 'OrderTrack',
+      component: OrderTrack,
+      meta: { requiresAuth: true, title: 'Order Tracking' },
     },
     {
       path: '/orders/pay/:orderNo',
@@ -92,7 +106,7 @@ const router = createRouter({
       path: '/profile',
       name: 'UserProfile',
       component: UserProfile,
-      meta: { requiresAuth: true, title: '用户中心' },
+      meta: { requiresAuth: true, title: 'Profile' },
     },
     {
       path: '/admin',
@@ -160,6 +174,7 @@ const router = createRouter({
 const publicRoutes = ['/login', '/register']
 let dynamicRoutesAdded = false
 
+// 功能：解析本地存储数组。
 const parseLocalArray = (key) => {
   try {
     const value = localStorage.getItem(key)
@@ -170,6 +185,7 @@ const parseLocalArray = (key) => {
   }
 }
 
+// 功能：扁平化菜单树。
 const flattenMenus = (menus, result = []) => {
   if (!Array.isArray(menus)) {
     return result
@@ -183,6 +199,7 @@ const flattenMenus = (menus, result = []) => {
   return result
 }
 
+// 功能：根据菜单动态注入后台路由。
 const addAdminRoutes = (menus) => {
   const flatMenus = flattenMenus(menus)
   const adminMenus = flatMenus.filter((menu) => menu.path && menu.path.startsWith('/admin'))

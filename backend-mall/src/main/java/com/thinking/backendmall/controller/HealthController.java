@@ -11,6 +11,7 @@ import java.util.Map;
 public class HealthController {
 
     @GetMapping("/health")
+    // 功能：处理health
     public Result<Map<String, Object>> health() {
         Map<String, Object> data = new HashMap<>();
         data.put("status", "ok");

@@ -5,11 +5,13 @@ const isLoggedIn = ref(!!localStorage.getItem('token'))
 const roleKey = ref(localStorage.getItem('roleKey'))
 const isAdmin = computed(() => roleKey.value === 'ADMIN')
 
+// 功能：处理刷新auth
 const refreshAuth = () => {
   isLoggedIn.value = !!localStorage.getItem('token')
   roleKey.value = localStorage.getItem('roleKey')
 }
 
+// 功能：处理guardaction
 const guardAction = (action, message = 'Please log in first') => {
   if (!isLoggedIn.value) {
     ElMessage.warning(message)
@@ -21,7 +23,9 @@ const guardAction = (action, message = 'Please log in first') => {
   return true
 }
 
+// 功能：处理useauth
 export const useAuth = () => {
+  // 功能：处理handler
   const handler = () => refreshAuth()
 
   onMounted(() => {

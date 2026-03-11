@@ -8,9 +8,11 @@ public final class HtmlSanitizer {
             .addTags("span")
             .addAttributes(":all", "style");
 
+    // 功能：处理htmlsanitizer
     private HtmlSanitizer() {
     }
 
+    // 功能：处理sanitize
     public static String sanitize(String html) {
         if (html == null || html.isBlank()) {
             return html;

@@ -23,6 +23,7 @@ public class AdminCategoryController {
 
     @GetMapping
     @PreAuthorize("@permissionService.hasPerm('admin:categories:list')")
+    // 功能：查询分类
     public Result<PageResult<Category>> listCategories(@RequestParam(required = false) String keyword,
                                                        @RequestParam(required = false) Integer status,
                                                        @RequestParam(defaultValue = "0") int page,
@@ -32,6 +33,7 @@ public class AdminCategoryController {
 
     @PostMapping
     @PreAuthorize("@permissionService.hasPerm('admin:categories:edit')")
+    // 功能：创建分类
     public Result<Category> createCategory(@Valid @RequestBody AdminCategoryRequest request) {
         Category category = adminCategoryService.createCategory(request);
         operationLogService.record("CATEGORY_CREATE", "category:" + category.getId(), category.getName());
@@ -40,6 +42,7 @@ public class AdminCategoryController {
 
     @PutMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:categories:edit')")
+    // 功能：更新分类
     public Result<Category> updateCategory(@PathVariable Long id, @Valid @RequestBody AdminCategoryRequest request) {
         Category category = adminCategoryService.updateCategory(id, request);
         operationLogService.record("CATEGORY_UPDATE", "category:" + id, category.getName());
@@ -48,6 +51,7 @@ public class AdminCategoryController {
 
     @PutMapping("/{id}/on")
     @PreAuthorize("@permissionService.hasPerm('admin:categories:edit')")
+    // 功能：启用分类
     public Result<Void> enableCategory(@PathVariable Long id) {
         adminCategoryService.updateStatus(id, 1);
         operationLogService.record("CATEGORY_ON", "category:" + id, "status=ON");
@@ -56,6 +60,7 @@ public class AdminCategoryController {
 
     @PutMapping("/{id}/off")
     @PreAuthorize("@permissionService.hasPerm('admin:categories:edit')")
+    // 功能：禁用分类
     public Result<Void> disableCategory(@PathVariable Long id) {
         adminCategoryService.updateStatus(id, 0);
         operationLogService.record("CATEGORY_OFF", "category:" + id, "status=OFF");
@@ -64,6 +69,7 @@ public class AdminCategoryController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@permissionService.hasPerm('admin:categories:delete')")
+    // 功能：删除分类
     public Result<Void> deleteCategory(@PathVariable Long id) {
         adminCategoryService.deleteCategory(id);
         operationLogService.record("CATEGORY_DELETE", "category:" + id, "deleted");

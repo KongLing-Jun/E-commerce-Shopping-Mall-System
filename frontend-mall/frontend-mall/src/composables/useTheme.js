@@ -1,4 +1,4 @@
-﻿import { ref } from 'vue'
+import { ref } from 'vue'
 
 const storedTheme = typeof window === 'undefined' ? null : localStorage.getItem('theme')
 const systemPrefersDark = typeof window !== 'undefined'
@@ -7,6 +7,7 @@ const systemPrefersDark = typeof window !== 'undefined'
 
 const theme = ref(storedTheme || (systemPrefersDark ? 'dark' : 'light'))
 
+// 功能：应用主题
 const applyTheme = (value) => {
   theme.value = value
   if (typeof window !== 'undefined') {
@@ -15,14 +16,17 @@ const applyTheme = (value) => {
   }
 }
 
+// 功能：切换主题
 const toggleTheme = () => {
   applyTheme(theme.value === 'dark' ? 'light' : 'dark')
 }
 
+// 功能：处理init主题
 const initTheme = () => {
   applyTheme(theme.value)
 }
 
+// 功能：处理use主题
 export const useTheme = () => ({
   theme,
   applyTheme,

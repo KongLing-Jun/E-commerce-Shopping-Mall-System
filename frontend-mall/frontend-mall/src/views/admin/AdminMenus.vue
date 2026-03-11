@@ -47,7 +47,7 @@
       <el-form :model="form" label-position="top">
         <el-form-item :label="t('admin.parentMenu')">
           <el-select v-model="form.parentId" class="w-full">
-            <el-option :value="0" :label="dual('???', 'Root')" />
+            <el-option :value="0" :label="dual('顶级菜单', 'Root')" />
             <el-option
               v-for="option in menuOptions"
               :key="option.id"
@@ -112,6 +112,7 @@ const saving = ref(false)
 const dialogVisible = ref(false)
 const editingId = ref(null)
 const { t, locale } = useI18n()
+// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
 const form = reactive({
@@ -127,6 +128,7 @@ const form = reactive({
 
 const dialogTitle = computed(() => (editingId.value ? t('common.edit') : t('common.create')))
 
+// 功能：扁平化菜单树
 const flattenMenus = (items, level = 0, result = []) => {
   items.forEach((item) => {
     result.push({
@@ -142,6 +144,7 @@ const flattenMenus = (items, level = 0, result = []) => {
 
 const menuOptions = computed(() => flattenMenus(menus.value))
 
+// 功能：获取菜单
 const fetchMenus = async () => {
   loading.value = true
   try {
@@ -158,6 +161,7 @@ const fetchMenus = async () => {
   }
 }
 
+// 功能：重置form
 const resetForm = () => {
   form.parentId = 0
   form.name = ''
@@ -169,12 +173,14 @@ const resetForm = () => {
   form.visible = 1
 }
 
+// 功能：打开create
 const openCreate = () => {
   editingId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
+// 功能：打开edit
 const openEdit = (row) => {
   editingId.value = row.id
   form.parentId = row.parentId ?? 0
@@ -188,6 +194,7 @@ const openEdit = (row) => {
   dialogVisible.value = true
 }
 
+// 功能：打开child
 const openChild = (row) => {
   editingId.value = null
   resetForm()
@@ -195,6 +202,7 @@ const openChild = (row) => {
   dialogVisible.value = true
 }
 
+// 功能：保存菜单
 const saveMenu = async () => {
   if (!form.name || !form.type) {
     ElMessage.warning(t('auth.completeInfo'))
@@ -233,6 +241,7 @@ const saveMenu = async () => {
   }
 }
 
+// 功能：移除数据
 const remove = async (row) => {
   try {
     await ElMessageBox.confirm(t('admin.deleteConfirm'), 'Confirm', { type: 'warning' })
