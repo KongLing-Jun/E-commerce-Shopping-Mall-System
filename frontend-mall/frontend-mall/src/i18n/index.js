@@ -317,7 +317,7 @@ const messages = {
       adminOrders: '订单',
       adminShip: '发货',
       adminBanners: '轮播图',
-      adminMenus: '??',
+      adminMenus: '菜单',
       adminCarts: '购物车',
       adminStats: '统计',
       signIn: '登录',
