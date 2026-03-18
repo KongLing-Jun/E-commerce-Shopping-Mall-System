@@ -1,3 +1,5 @@
 frontend-mall/.idea/*
 backend-mall/.xcodemap/*
 backend-mall/.m2/*
+postman/node_modules/*
+postman/reports/*

@@ -1,0 +1,18 @@
+{
+  "name": "mall-postman-tests",
+  "version": "1.0.0",
+  "description": "电商商城系统 Postman 全面测试集合",
+  "scripts": {
+    "test": "powershell -ExecutionPolicy Bypass -File run_comprehensive_tests.ps1",
+    "test:e2e": "powershell -ExecutionPolicy Bypass -File run_comprehensive_tests.ps1 -SkipPermission -SkipComprehensive",
+    "test:permission": "powershell -ExecutionPolicy Bypass -File run_comprehensive_tests.ps1 -SkipE2E -SkipComprehensive",
+    "test:comprehensive": "powershell -ExecutionPolicy Bypass -File run_comprehensive_tests.ps1 -SkipE2E -SkipPermission"
+  },
+  "keywords": ["postman", "newman", "api-testing", "e-commerce"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}

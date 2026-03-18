@@ -1,0 +1,955 @@
+{
+  "info": {
+    "name": "Mall Comprehensive Tests",
+    "description": "电商商城系统全面测试集合，包含正常场景、边界条件和错误处理测试",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00. 基础健康检查",
+      "item": [
+        {
+          "name": "00.01 - 健康检查正常",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "00.02 - 根路径检查",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01. 认证模块 - 正常场景",
+      "item": [
+        {
+          "name": "01.01 - 用户登录成功",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"{{userUsername}}\",\"password\":\"{{userPassword}}\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "pm.test('应返回 token', function () { pm.expect(json.data.token).to.be.a('string'); });",
+                  "pm.test('角色应为 USER', function () { pm.expect(json.data.roleKey).to.eql('USER'); });",
+                  "pm.environment.set('userToken', json.data.token);",
+                  "pm.environment.set('userId', json.data.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.02 - 管理员登录成功",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"{{adminUsername}}\",\"password\":\"{{adminPassword}}\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "pm.test('应返回 token', function () { pm.expect(json.data.token).to.be.a('string'); });",
+                  "pm.test('角色应为 ADMIN', function () { pm.expect(json.data.roleKey).to.eql('ADMIN'); });",
+                  "pm.environment.set('adminToken', json.data.token);",
+                  "pm.environment.set('adminId', json.data.userId);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. 认证模块 - 错误处理",
+      "item": [
+        {
+          "name": "02.01 - 用户不存在登录失败",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"nonexistent_user\",\"password\":\"wrongpassword\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码不应为 200', function () { pm.response.to.not.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.02 - 密码错误登录失败",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"{{userUsername}}\",\"password\":\"wrongpassword\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码不应为 200', function () { pm.response.to.not.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.03 - 用户名为空登录失败",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"\",\"password\":\"{{userPassword}}\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码不应为 200', function () { pm.response.to.not.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.04 - 密码为空登录失败",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"{{userUsername}}\",\"password\":\"\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码不应为 200', function () { pm.response.to.not.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03. 权限控制 - 错误处理",
+      "item": [
+        {
+          "name": "03.01 - 游客访问受保护接口返回401",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders?page=0&size=5"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.02 - 无效JWT访问返回401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid.jwt.token"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders?page=0&size=5"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.03 - 普通用户访问管理员接口返回403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users?page=0&size=5"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 403', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04. 商品模块 - 正常场景",
+      "item": [
+        {
+          "name": "04.01 - 获取首页推荐商品",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/home/recommend"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "const products = (json.data && (json.data.products || json.data.recommendProducts)) || [];",
+                  "pm.test('推荐商品不应为空', function () { pm.expect(products.length).to.be.greaterThan(0); });",
+                  "pm.environment.set('productId', products[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04.02 - 获取商品详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/{{productId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "pm.test('商品图片应为数组', function () { pm.expect(Array.isArray(json.data.images)).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04.03 - 获取商品列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products?page=0&size=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "pm.test('商品列表应为数组', function () { pm.expect(Array.isArray(json.data.content)).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05. 商品模块 - 边界条件",
+      "item": [
+        {
+          "name": "05.01 - 页面大小为1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products?page=0&size=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05.02 - 页码很大（可能超出范围）",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products?page=99999&size=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06. 购物车模块 - 正常场景",
+      "item": [
+        {
+          "name": "06.01 - 添加商品到购物车",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\":{{productId}},\"quantity\":1}"
+            },
+            "url": "{{baseUrl}}/api/cart/items"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06.02 - 获取购物车列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cart/items"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07. 购物车模块 - 边界条件",
+      "item": [
+        {
+          "name": "07.01 - 添加数量为1的商品",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\":{{productId}},\"quantity\":1}"
+            },
+            "url": "{{baseUrl}}/api/cart/items"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08. 地址模块 - 正常场景",
+      "item": [
+        {
+          "name": "08.01 - 创建收货地址",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"receiver\":\"测试用户\",\"phone\":\"13800001111\",\"province\":\"广东省\",\"city\":\"深圳市\",\"area\":\"南山区\",\"detail\":\"科技园1号\",\"isDefault\":1}"
+            },
+            "url": "{{baseUrl}}/api/addresses"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08.02 - 获取地址列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/addresses"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "pm.test('地址列表应为数组', function () { pm.expect(Array.isArray(json.data)).to.eql(true); });",
+                  "pm.test('地址列表不应为空', function () { pm.expect(json.data.length).to.be.greaterThan(0); });",
+                  "const chosen = json.data.find(x => x.isDefault === 1) || json.data[0];",
+                  "pm.environment.set('addressId', chosen.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09. 订单模块 - 正常场景",
+      "item": [
+        {
+          "name": "09.01 - 获取订单预信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/pre"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "pm.test('应返回总金额', function () { pm.expect(json.data.totalAmount).to.exist; });",
+                  "pm.environment.set('orderPayAmount', json.data.totalAmount);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09.02 - 创建订单",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"addressId\":{{addressId}}}"
+            },
+            "url": "{{baseUrl}}/api/orders"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "pm.test('应返回订单号', function () { pm.expect(json.data.orderNo).to.be.a('string'); });",
+                  "pm.environment.set('orderNo', json.data.orderNo);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09.03 - 订单支付",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"payAmount\":{{orderPayAmount}}}"
+            },
+            "url": "{{baseUrl}}/api/orders/{{orderNo}}/pay"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09.04 - 获取订单列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders?page=0&size=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10. 管理员模块 - 正常场景",
+      "item": [
+        {
+          "name": "10.01 - 获取用户列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users?page=0&size=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.02 - 获取订单列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/orders?page=0&size=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.03 - 获取菜单树",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/menus/tree"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.04 - 获取统计概览",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/stats/overview"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.05 - 订单发货",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"expressNo\":\"SF123456789CN\",\"expressCompany\":\"顺丰速运\"}"
+            },
+            "url": "{{baseUrl}}/api/admin/orders/{{orderNo}}/ship"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.06 - 获取通知列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/notices?page=0&size=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11. 用户确认收货",
+      "item": [
+        {
+          "name": "11.01 - 确认收货",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderNo}}/confirm"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11.02 - 验证订单最终状态",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders?page=0&size=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态码应为 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('返回码应为 200', function () { pm.expect(json.code).to.eql(200); });",
+                  "const records = (json.data && json.data.content) || [];",
+                  "const orderNo = pm.environment.get('orderNo');",
+                  "const current = records.find(x => x.orderNo === orderNo);",
+                  "pm.test('当前订单应存在', function () { pm.expect(current).to.exist; });",
+                  "if (current) {",
+                  "  pm.test('订单状态应为已完成', function () { pm.expect(current.status).to.eql(3); });",
+                  "  pm.test('快递单号应正确', function () { pm.expect(current.expressNo).to.eql('SF123456789CN'); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
