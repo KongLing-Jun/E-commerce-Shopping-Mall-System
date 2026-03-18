@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-8">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item to="/">{{ t('nav.home') }}</el-breadcrumb-item>

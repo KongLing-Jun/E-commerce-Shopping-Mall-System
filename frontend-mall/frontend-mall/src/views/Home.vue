@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-10">
     <section class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
