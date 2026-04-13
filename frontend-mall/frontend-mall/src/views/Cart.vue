@@ -16,8 +16,8 @@
         <div class="flex flex-wrap items-center gap-4 lg:flex-nowrap">
           <el-checkbox
             v-model="item.checked"
-            :true-label="1"
-            :false-label="0"
+            :true-value="1"
+            :false-value="0"
             @change="updateChecked(item)"
           />
           <img :src="item.image" :alt="item.name" class="h-28 w-28 rounded-xl object-cover" />

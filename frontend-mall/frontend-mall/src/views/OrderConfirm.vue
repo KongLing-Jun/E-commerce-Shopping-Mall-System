@@ -18,7 +18,7 @@
           <h2 class="text-2xl font-extrabold">{{ dual('收货地址', 'Shipping Address') }}</h2>
           <el-button text type="primary" @click="router.push('/addresses')">{{ t('common.edit') }}</el-button>
         </div>
-        <div class="grid gap-4 p-6 md:grid-cols-2">
+        <div v-if="addresses.length" class="grid gap-4 p-6 md:grid-cols-2">
           <button
             v-for="address in addresses"
             :key="address.id"
@@ -33,6 +33,13 @@
             </p>
             <span v-if="address.isDefault === 1" class="chip mt-3">{{ t('address.default') }}</span>
           </button>
+        </div>
+        <div v-else class="p-6">
+          <el-empty :description="dual('暂无收货地址，请先新增地址', 'No shipping address yet. Add one first.')">
+            <el-button type="primary" @click="router.push('/addresses')">
+              {{ dual('去新增地址', 'Add Address') }}
+            </el-button>
+          </el-empty>
         </div>
       </article>
 
@@ -58,7 +65,15 @@
 
       <div class="flex items-center justify-between">
         <el-button @click="router.push('/cart')">{{ dual('返回购物车', 'Back to Cart') }}</el-button>
-        <el-button type="primary" size="large" :loading="loading" @click="submitOrder">{{ dual('提交并复核', 'Review Order') }}</el-button>
+        <el-button
+          type="primary"
+          size="large"
+          :loading="loading"
+          :disabled="loading || !selectedAddressId || !orderItems.length"
+          @click="submitOrder"
+        >
+          {{ dual('提交并复核', 'Review Order') }}
+        </el-button>
       </div>
     </section>
 
@@ -121,13 +136,10 @@ const paymentForm = reactive({
   saveCard: false,
 })
 const { t, locale } = useI18n()
-// 功能：处理dual
 const dual = (zh, en) => (locale.value === 'zh' ? zh : en)
 
-// 统一价格格式化，避免金额显示精度不一致。
 const formatPrice = (value) => Number(value || 0).toFixed(2)
 
-// 读取确认页预览数据：勾选商品、地址列表、金额汇总。
 const loadPreOrder = async () => {
   try {
     const res = await getOrderPre()
@@ -145,8 +157,10 @@ const loadPreOrder = async () => {
   }
 }
 
-// 提交订单前校验地址与商品，再创建主单和子单。
 const submitOrder = async () => {
+  if (loading.value) {
+    return
+  }
   if (!selectedAddressId.value) {
     ElMessage.warning(t('orderConfirm.selectAddress'))
     return
@@ -171,8 +185,5 @@ const submitOrder = async () => {
   }
 }
 
-// 页面加载时初始化确认页数据。
 onMounted(loadPreOrder)
 </script>
-
-

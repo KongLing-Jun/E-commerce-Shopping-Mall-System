@@ -21,8 +21,8 @@ jwt:
   expiration: 86400000
 
 app:
-  upload-dir: uploads
-  upload-url-prefix: /uploads
+  upload-dir: upload
+  upload-url-prefix: /upload
   seed:
     refresh-product-images: true
   cache:

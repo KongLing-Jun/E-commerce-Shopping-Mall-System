@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers("/error")
                         .permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/upload/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -65,7 +65,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         return (HttpServletRequest request) -> {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
+            configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
             configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             configuration.setAllowedHeaders(List.of("*"));
             configuration.setAllowCredentials(true);

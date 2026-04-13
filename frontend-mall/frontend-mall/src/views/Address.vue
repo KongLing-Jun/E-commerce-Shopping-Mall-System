@@ -56,7 +56,7 @@
           <el-input v-model="form.detail" />
         </el-form-item>
         <el-form-item>
-          <el-checkbox v-model="form.isDefault" :true-label="1" :false-label="0">
+          <el-checkbox v-model="form.isDefault" :true-value="1" :false-value="0">
             {{ t('address.setDefault') }}
           </el-checkbox>
         </el-form-item>

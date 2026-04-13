@@ -15,7 +15,7 @@ public interface MenuRepository extends BaseMapper<Menu> {
             INNER JOIN role_menu rm ON m.id = rm.menu_id
             WHERE rm.role_id = #{roleId}
               AND m.perm_code IS NOT NULL
-              AND m.type = 'BUTTON'
+              AND m.perm_code <> ''
             """)
     // 功能：处理select权限codesby角色id
     List<String> selectPermCodesByRoleId(Long roleId);

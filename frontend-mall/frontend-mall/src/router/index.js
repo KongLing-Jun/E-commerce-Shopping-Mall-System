@@ -112,61 +112,61 @@ const router = createRouter({
       path: '/admin',
       name: 'AdminRoot',
       redirect: '/admin/stats',
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin' },
     },
     {
       path: '/admin/stats',
       name: 'AdminStats',
       component: () => import('@/views/admin/AdminStats.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Stats' },
     },
     {
       path: '/admin/users',
       name: 'AdminUsers',
       component: () => import('@/views/admin/AdminUsers.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Users' },
     },
     {
       path: '/admin/products',
       name: 'AdminProducts',
       component: () => import('@/views/admin/AdminProducts.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Products' },
     },
     {
       path: '/admin/menus',
       name: 'AdminMenus',
       component: () => import('@/views/admin/AdminMenus.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Menus' },
     },
     {
       path: '/admin/roles',
       name: 'AdminRoles',
       component: () => import('@/views/admin/AdminRoles.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Roles' },
     },
     {
       path: '/admin/categories',
       name: 'AdminCategories',
       component: () => import('@/views/admin/AdminCategories.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Categories' },
     },
     {
       path: '/admin/orders',
       name: 'AdminOrders',
       component: () => import('@/views/admin/AdminOrders.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Orders' },
     },
     {
       path: '/admin/banners',
       name: 'AdminBanners',
       component: () => import('@/views/admin/AdminBanners.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Banners' },
     },
     {
       path: '/admin/carts',
       name: 'AdminCarts',
       component: () => import('@/views/admin/AdminCarts.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true, title: 'Admin Carts' },
     },
   ],
 })
@@ -201,6 +201,17 @@ const flattenMenus = (menus, result = []) => {
 
 // 功能：根据菜单动态注入后台路由。
 const addAdminRoutes = (menus) => {
+  const adminTitleMap = {
+    AdminStats: 'Admin Stats',
+    AdminUsers: 'Admin Users',
+    AdminProducts: 'Admin Products',
+    AdminMenus: 'Admin Menus',
+    AdminRoles: 'Admin Roles',
+    AdminCategories: 'Admin Categories',
+    AdminOrders: 'Admin Orders',
+    AdminBanners: 'Admin Banners',
+    AdminCarts: 'Admin Carts',
+  }
   const flatMenus = flattenMenus(menus)
   const adminMenus = flatMenus.filter((menu) => menu.path && menu.path.startsWith('/admin'))
   if (!router.hasRoute('AdminRoot')) {
@@ -222,7 +233,11 @@ const addAdminRoutes = (menus) => {
         path: menu.path,
         name: menu.component,
         component: componentLoader,
-        meta: { requiresAdmin: true, perm: menu.permCode || null },
+        meta: {
+          requiresAdmin: true,
+          perm: menu.permCode || null,
+          title: adminTitleMap[menu.component] || menu.name || 'Admin',
+        },
       })
     }
   })
